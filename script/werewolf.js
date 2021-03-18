@@ -192,9 +192,7 @@ most = (arr) => {
     a[c] = (if a.hasOwnProperty(c) then a[c] else 0) + 1
     a
   }, Object())
-  print(counts)
   maxCount = Math.max.apply(Object(), Object.values(counts))
-  print(maxCount)
   Object.keys(counts).filter(k => counts[k] === maxCount)
 }
 
