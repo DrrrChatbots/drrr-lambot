@@ -2,6 +2,7 @@
 
 NodeJS bot powered by Lambda Script
 
+```
 Usage: node main.js [OPTION]... [LambdaScript]...
 
 OPTION:
@@ -38,3 +39,4 @@ Note:
 Different machine will share the global event handler.
 It's because of the implementation before,
 so there are still some problems in multiple machine.
+```
