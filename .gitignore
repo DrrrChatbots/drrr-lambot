@@ -1,6 +1,5 @@
 # Logs
-cache.json
-profile.json
+config.json
 logs
 *.log
 npm-debug.log*

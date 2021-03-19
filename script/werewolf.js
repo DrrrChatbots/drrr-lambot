@@ -600,8 +600,9 @@ werewolf = (lang) => {
 
 room = ""
 
+drrr = new Bot("WolfHost", "kanra-2x")
+
 if room.length then {
-  drrr = new Bot("WolfHost", "kanra-2x")
   if drrr.load() then
     drrr.join(room, () => {
       werewolf("en");

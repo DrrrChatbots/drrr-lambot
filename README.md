@@ -2,12 +2,39 @@
 
 NodeJS bot powered by Lambda Script
 
-You can run it via a lambda script:
-```
-node main.js script/werewolf.ls
-```
+Usage: node main.js [OPTION]... [LambdaScript]...
 
-Or run in REPL:
-```
-node main.js
-```
+OPTION:
+
+-h, --help                       Show the manual
+
+-i, --interact, --repl           Enable repl mode
+
+-j, --js      [JavaScript...]    Load JavaScript to context
+
+-l, --ls, --  [LambdaScript ...] Load LambdaScripts in a machine
+
+REPL:
+
+In REPL mode, you will be given a REPL in LambdaScript in first machine.
+(if no script be loaded, it will "new" a machine for you.)
+
+You can check machines by variable "machines",
+And change current REPL machine by "global.replmidx = [machine index]"
+
+Examples:
+
+$ # Run it interativly
+$ node main.js
+
+$ # Run the script
+$ node main.js script/werewolf.js
+
+$ # Run scripts with different machines and enable repl
+$ node main.js -i script/werewolf.js -- script/werewolf.js
+
+Note:
+
+Different machine will share the global event handler.
+It's because of the implementation before,
+so there are still some problems in multiple machine.
