@@ -1295,6 +1295,8 @@ var PS = {};
   var showBotScript = new Data_Show.Show(function (v) {
       return "(BotScript " + (Data_Show.show(Data_List_Types.showList(showExpr))(v.value0) + (" " + (Data_Show.show(Data_Show.showArray(showBotState))(v.value1) + ")")));
   });
+  var cast = $foreign.toTerm("");
+  exports["cast"] = cast;
   exports["Trm"] = Trm;
   exports["Una"] = Una;
   exports["Bin"] = Bin;
@@ -22786,7 +22788,7 @@ var PS = {};
                           if (maybe instanceof Data_Maybe.Nothing) {
                               return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new BotScript.Ifels(prd, thn, new BotScript.Group(Data_List_Types.Nil.value)));
                           };
-                          throw new Error("Failed pattern match at BotScriptParser (line 327, column 3 - line 331, column 51): " + [ maybe.constructor.name ]);
+                          throw new Error("Failed pattern match at BotScriptParser (line 328, column 3 - line 332, column 51): " + [ maybe.constructor.name ]);
                       });
                   });
               });
@@ -23041,7 +23043,7 @@ var PS = {};
           if (maybe instanceof Data_Maybe.Nothing) {
               return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new Data_Tuple.Tuple(false, new Data_Tuple.Tuple($$var, BotScript.Trm.create(BotScript.toTerm("String")("")))));
           };
-          throw new Error("Failed pattern match at BotScriptParser (line 130, column 5 - line 132, column 72): " + [ maybe.constructor.name ]);
+          throw new Error("Failed pattern match at BotScriptParser (line 131, column 5 - line 133, column 72): " + [ maybe.constructor.name ]);
       });
   });
   var parseExpr = Control_Lazy.fix(Text_Parsing_Parser.lazyParserT)(function (self) {
@@ -23110,7 +23112,7 @@ var PS = {};
       if (maybe instanceof Data_Maybe.Nothing) {
           return parseExpr;
       };
-      throw new Error("Failed pattern match at BotScriptParser (line 463, column 3 - line 465, column 28): " + [ maybe.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptParser (line 464, column 3 - line 466, column 28): " + [ maybe.constructor.name ]);
   });
   var testParseExprs = Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Data_Array.some(Text_Parsing_Parser.alternativeParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser.lazyParserT)(parseTopExpr))(function (exprs) {
       return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new Data_Tuple.Tuple(true, exprs));
@@ -23150,6 +23152,8 @@ var PS = {};
 })(PS);
 (function(exports) {
   
+  exports.newObject = () => ({})
+
   unit = () => false
   //unit = () => Object()
 
@@ -23259,26 +23263,59 @@ var PS = {};
     return pred.valueOf() ? thn : els;
   }
 
-  exports.timers = {}
-  exports.setTimer = state => prd => act => () => {
-    exports.timers[state] = exports.timers[state] || [];
-    exports.timers[state].push(setInterval(act, prd));
+  //exports.timers = {}
+  //exports.setTimer = state => prd => act => () => {
+  //  exports.timers[state] = exports.timers[state] || [];
+  //  exports.timers[state].push(setInterval(act, prd));
+  //}
+
+  //exports.clearAllTimer = () => {
+  //  for(s in exports.timers){
+  //    for(id of exports.timers[s]){
+  //      clearInterval(id);
+  //    }
+  //  }
+  //  exports.timers = {};
+  //}
+
+  //exports.clearTimer = state => () => {
+  //  if(exports.timers[state])
+  //    for(id of exports.timers[state])
+  //      clearInterval(id);
+  //  exports.timers[state] = [];
+  //}
+
+  function padArray(array, length, fill){
+    return length > array.length ?
+      array.concat(Array(length - array.length).fill(fill)):
+      array;
   }
 
-  exports.clearAllTimer = () => {
-    for(s in exports.timers){
-      for(id of exports.timers[s]){
-        clearInterval(id);
-      }
-    }
-    exports.timers = {};
+  exports.meetEvent = events => state => types => args => next => () => {
+    events[state] = events[state] || [];
+
+    [user_regex, cont_regex] = padArray(args, 2, "");
+
+    events[state].push([
+      types, user_regex, cont_regex, next
+    ])
+    //console.log(`Event ${types} ${JSON.stringify(args)}`);
   }
 
-  exports.clearTimer = state => () => {
-    if(exports.timers[state])
-      for(id of exports.timers[state])
+  exports.dropEvent = events => state => () => {
+    if(state) events[state] = [];
+  }
+
+  exports.dropTimer = timers => state => () => {
+    if(timers[state])
+      for(id of timers[state])
         clearInterval(id);
-    exports.timers[state] = [];
+    timers[state] = [];
+  }
+
+  exports.hangTimer = timers => state => prd => act => () => {
+    timers[state] = timers[state] || [];
+    timers[state].push(setInterval(act, prd));
   }                        
   exports.toBoolean = Boolean
 
@@ -23295,6 +23332,62 @@ var PS = {};
   exports["delete"] = cons => attr => {
     if(attr) delete cons[attr];
     else delete cons;
+  }
+
+  exports.setMachine = machine => keys => values => {
+    for(let i = 0; i < keys.length; i++)
+      machine[keys[i]] = values[i];
+    return machine;
+  }
+
+  // built-ins
+  stringify = obj => {
+    str = JSON.stringify(obj)
+    if(obj === undefined)
+      str = "undefined";
+    else if(typeof obj == 'function')
+      str = 'function' + (obj.name ? ' ' + obj.name : '');
+    else if(str === undefined && obj.toString)
+      str = obj.toString();
+    else if(str === '{}' && obj.constructor
+      && obj.constructor.name != 'Object')
+      str = "[Object " + obj.constructor.name + "]"
+    return str;
+  }
+
+  botlang_builtins = {
+    'title': function(msg){
+      console.log(`title ${JSON.stringify(msg)}`);
+    },
+    'descr': function(msg){
+      console.log(`descr ${JSON.stringify(msg)}`);
+    },
+    'print': function(...args){
+      console.log.apply(null,
+        args.map((e)=> stringify(e.valueOf ? e.valueOf() : e)));
+      //console.log(`print ${JSON.stringify(msg)}`);
+    },
+    'order': function(keyword, p1, p2){
+      console.log(`order ${JSON.stringify(keyword)}`);
+    },
+    'new': function (func) {
+      var res = {};
+      if (func.prototype !== null) {
+        res.__proto__ = func.prototype;
+      }
+      var ret = func.apply(res,
+        Array.prototype.slice.call(arguments, 1));
+      if ((typeof ret === "object"
+        || typeof ret === "function")
+        && ret !== null) {
+        return ret;
+      }
+      return res;
+    }
+  }
+
+  for(key in botlang_builtins){
+    globalThis[key] = botlang_builtins[key];
   }
 })(PS["BotScriptVM"] = PS["BotScriptVM"] || {});
 (function(exports) {
@@ -23544,97 +23637,6 @@ var PS = {};
   exports["traverse"] = traverse;
   exports["traversableArray"] = traversableArray;
 })(PS);
-(function(exports) {
-  stringify = obj => {
-    str = JSON.stringify(obj)
-    if(obj === undefined)
-      str = "undefined";
-    else if(typeof obj == 'function')
-      str = 'function' + (obj.name ? ' ' + obj.name : '');
-    else if(str === undefined && obj.toString)
-      str = obj.toString();
-    else if(str === '{}' && obj.constructor
-      && obj.constructor.name != 'Object')
-      str = "[Object " + obj.constructor.name + "]"
-    return str;
-  }
-
-  botlang_builtins = {
-    'title': function(msg){
-      console.log(`title ${JSON.stringify(msg)}`);
-    },
-    'descr': function(msg){
-      console.log(`descr ${JSON.stringify(msg)}`);
-    },
-    'print': function(...args){
-      console.log.apply(null,
-        args.map((e)=> stringify(e.valueOf ? e.valueOf() : e)));
-      //console.log(`print ${JSON.stringify(msg)}`);
-    },
-    'order': function(keyword, p1, p2){
-      console.log(`order ${JSON.stringify(keyword)}`);
-    },
-    'new': function (func) {
-      var res = {};
-      if (func.prototype !== null) {
-        res.__proto__ = func.prototype;
-      }
-      var ret = func.apply(res,
-        Array.prototype.slice.call(arguments, 1));
-      if ((typeof ret === "object"
-        || typeof ret === "function")
-        && ret !== null) {
-        return ret;
-      }
-      return res;
-    }
-  }
-
-  for(key in botlang_builtins){
-    globalThis[key] = botlang_builtins[key];
-  }
-
-  exports.cur = ""
-  exports.events = {}
-
-  function padArray(array, length, fill){
-    return length > array.length ?
-      array.concat(Array(length - array.length).fill(fill)):
-      array;
-  }
-
-  exports.clearAllEvent = () => {
-    exports.cur = "";
-    exports.events = {};
-  }
-
-  exports.setcur = state => () => {
-    if(exports.cur) exports.events[exports.cur] = [];
-    exports.cur = state;
-  }
-
-  exports.listen = state => types => args => next => () => {
-    exports.events[state] = exports.events[state] || [];
-
-    [user_regex, cont_regex] = padArray(args, 2, "");
-
-    exports.events[state].push([
-      types, user_regex, cont_regex, next
-    ])
-
-    //console.log(`Event ${types} ${JSON.stringify(args)}`);
-  }
-})(PS["DrrrBot"] = PS["DrrrBot"] || {});
-(function($PS) {
-  // Generated by purs version 0.13.8
-  "use strict";
-  $PS["DrrrBot"] = $PS["DrrrBot"] || {};
-  var exports = $PS["DrrrBot"];
-  var $foreign = $PS["DrrrBot"];
-  exports["listen"] = $foreign.listen;
-  exports["setcur"] = $foreign.setcur;
-  exports["clearAllEvent"] = $foreign.clearAllEvent;
-})(PS);
 (function($PS) {
   // Generated by purs version 0.13.8
   "use strict";
@@ -23711,16 +23713,51 @@ var PS = {};
   var Data_Show = $PS["Data.Show"];
   var Data_Traversable = $PS["Data.Traversable"];
   var Data_Tuple = $PS["Data.Tuple"];
-  var DrrrBot = $PS["DrrrBot"];
   var Effect = $PS["Effect"];
   var Effect_Class = $PS["Effect.Class"];
   var Effect_Console = $PS["Effect.Console"];
   var Undefined = $PS["Undefined"];                
+  var wrapMachine = function (machine) {
+      var v = BotScriptEnv.insert(machine.env)("__machine__")(BotScript.cast(machine));
+      return machine;
+  };
+  var unpackExprs = function (v) {
+      if (v instanceof Data_List_Types.Cons && v.value0 instanceof Data_List_Types.Cons) {
+          return new Data_Tuple.Tuple(v.value0.value0, new Data_Tuple.Tuple(v.value0.value1, v.value1));
+      };
+      return new Data_Tuple.Tuple(new BotScript.Trm(BotScript.toTerm("")("wrong")), new Data_Tuple.Tuple(Data_List_Types.Nil.value, new Data_List_Types.Cons(Data_List_Types.Nil.value, Data_List_Types.Nil.value)));
+  };
+  var setValExprs = function (machine) {
+      return function (val) {
+          return function (exprs) {
+              return $foreign.setMachine(machine)([ "val", "exprs" ])([ val, BotScript.cast(exprs) ]);
+          };
+      };
+  };
+  var setExprs = function (machine) {
+      return function (exprs) {
+          return $foreign.setMachine(machine)([ "exprs" ])([ BotScript.cast(exprs) ]);
+      };
+  };
+  var rawMachine = function (x) {
+      return {
+          val: $foreign.none(Undefined["undefined"]),
+          cur: "",
+          env: BotScriptEnv.pushEnv(BotScriptEnv.Top.value),
+          exprs: new Data_List_Types.Cons(Data_List_Types.Nil.value, Data_List_Types.Nil.value),
+          states: [  ],
+          events: $foreign.newObject(Undefined["undefined"]),
+          timers: $foreign.newObject(Undefined["undefined"])
+      };
+  };
   var liftAbs = function (v) {
       if (v instanceof BotScript.Abs) {
           return v;
       };
       return new BotScript.Abs([  ], v);
+  };
+  var getEnv = function (machine) {
+      return machine.env;
   };
   var detailShow = function (v) {
       if (v instanceof BotScript.Var) {
@@ -23739,7 +23776,7 @@ var PS = {};
           return function (enviorn) {
               return Data_Foldable.foldr(Data_Foldable.foldableArray)(function (v) {
                   return function (acc) {
-                      return BotScriptEnv.insert(acc)(v.value0)(BotScript.toTerm("")(v.value1));
+                      return BotScriptEnv.insert(acc)(v.value0)(BotScript.cast(v.value1));
                   };
               })(enviorn)(Data_Array.zip(syms)(args));
           };
@@ -23757,532 +23794,311 @@ var PS = {};
       };
       if (v.exprs instanceof Data_List_Types.Cons && v.exprs.value0 instanceof Data_List_Types.Nil) {
           var pop$primeenv = BotScriptEnv.popEnv(v.env);
-          return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-              exprs: v.exprs.value1,
-              env: pop$primeenv,
-              cur: v.cur,
-              states: v.states,
-              val: v.val
-          }));
+          return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create($foreign.setMachine(v)([ "exprs", "env" ])([ BotScript.cast(v.exprs.value1), BotScript.cast(pop$primeenv) ])));
       };
       if (v.exprs instanceof Data_List_Types.Cons && v.exprs.value0 instanceof Data_List_Types.Cons) {
-          var machine$prime = {
-              exprs: new Data_List_Types.Cons(v.exprs.value0.value1, v.exprs.value1),
-              cur: v.cur,
-              env: v.env,
-              states: v.states,
-              val: v.val
+          var v1 = unpackExprs(v.exprs);
+          var exprs$prime = new Data_List_Types.Cons(v1.value1.value0, v1.value1.value1);
+          var env = getEnv(v);
+          if (v1.value0 instanceof BotScript.Trm) {
+              return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(v1.value0.value0)(exprs$prime)));
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Trm) {
-              return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                  val: v.exprs.value0.value0.value0,
-                  cur: machine$prime.cur,
-                  env: machine$prime.env,
-                  exprs: machine$prime.exprs,
-                  states: machine$prime.states
-              }));
-          };
-          if (v.exprs.value0.value0 instanceof BotScript.Una && v.exprs.value0.value0.value0 === "new") {
-              if (v.exprs.value0.value0.value1 instanceof BotScript.App) {
+          if (v1.value0 instanceof BotScript.Una && v1.value0.value0 === "new") {
+              if (v1.value0.value1 instanceof BotScript.App) {
                   return function __do() {
-                      var cons$prime = evalExpr(v)(v.exprs.value0.value0.value1.value0)();
-                      var args$prime = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExprLiftedStmt(v))(v.exprs.value0.value0.value1.value1)();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: $foreign["new"](cons$prime)(args$prime),
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                      var cons$prime = evalExpr(v)(v1.value0.value1.value0)();
+                      var args$prime = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExprLiftedStmt(v))(v1.value0.value1.value1)();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign["new"](cons$prime)(args$prime))(exprs$prime));
                   };
               };
               return function __do() {
                   Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("\"new\" need a constructor"))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.none(Undefined["undefined"]),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Una && v.exprs.value0.value0.value0 === "delete") {
-              if (v.exprs.value0.value0.value1 instanceof BotScript.Dot) {
+          if (v1.value0 instanceof BotScript.Una && v1.value0.value0 === "delete") {
+              if (v1.value0.value1 instanceof BotScript.Dot) {
                   return function __do() {
-                      var obj$prime = evalExpr(v)(v.exprs.value0.value0.value1.value0)();
-                      var mem$prime = BotScript.toTerm("String")(v.exprs.value0.value0.value1.value1);
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: $foreign["delete"](obj$prime)(mem$prime),
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                      var obj$prime = evalExpr(v)(v1.value0.value1.value0)();
+                      var mem$prime = BotScript.toTerm("String")(v1.value0.value1.value1);
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign["delete"](obj$prime)(mem$prime))(exprs$prime));
                   };
               };
-              if (v.exprs.value0.value0.value1 instanceof BotScript.Sub) {
+              if (v1.value0.value1 instanceof BotScript.Sub) {
                   return function __do() {
-                      var obj$prime = evalExpr(v)(v.exprs.value0.value0.value1.value0)();
-                      var sub$prime = evalExpr(v)(v.exprs.value0.value0.value1.value1)();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: $foreign["delete"](obj$prime)(sub$prime),
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                      var obj$prime = evalExpr(v)(v1.value0.value1.value0)();
+                      var sub$prime = evalExpr(v)(v1.value0.value1.value1)();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign["delete"](obj$prime)(sub$prime))(exprs$prime));
                   };
               };
               return function __do() {
-                  var expr$prime = evalExpr(v)(v.exprs.value0.value0.value1)();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign["delete"](expr$prime)(Undefined["undefined"]),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var expr$prime = evalExpr(v)(v1.value0.value1)();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign["delete"](expr$prime)(Undefined["undefined"]))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Una) {
+          if (v1.value0 instanceof BotScript.Una) {
               return function __do() {
-                  var val$prime = evalExpr(v)(v.exprs.value0.value0.value1)();
-                  var val$prime$prime = $foreign.evalUna(v.exprs.value0.value0.value0)(val$prime);
-                  var loop$prime$prime = Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                      val: val$prime$prime,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  }));
-                  var loop$prime = Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                      val: val$prime,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  }));
-                  if (v.exprs.value0.value0.value0 === "_++") {
-                      lvalUpdate(v)(v.exprs.value0.value0.value1)(val$prime$prime)();
+                  var val$prime = evalExpr(v)(v1.value0.value1)();
+                  var val$prime$prime = $foreign.evalUna(v1.value0.value0)(val$prime);
+                  var loop$prime$prime = Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime$prime)(exprs$prime)));
+                  var loop$prime = Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime)));
+                  if (v1.value0.value0 === "_++") {
+                      lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
                       return loop$prime();
                   };
-                  if (v.exprs.value0.value0.value0 === "_--") {
-                      lvalUpdate(v)(v.exprs.value0.value0.value1)(val$prime$prime)();
+                  if (v1.value0.value0 === "_--") {
+                      lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
                       return loop$prime();
                   };
-                  if (v.exprs.value0.value0.value0 === "++_") {
-                      lvalUpdate(v)(v.exprs.value0.value0.value1)(val$prime$prime)();
+                  if (v1.value0.value0 === "++_") {
+                      lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
                       return loop$prime$prime();
                   };
-                  if (v.exprs.value0.value0.value0 === "--_") {
-                      lvalUpdate(v)(v.exprs.value0.value0.value1)(val$prime$prime)();
+                  if (v1.value0.value0 === "--_") {
+                      lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
                       return loop$prime$prime();
                   };
                   return loop$prime$prime();
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Bin && v.exprs.value0.value0.value0 === "||") {
+          if (v1.value0 instanceof BotScript.Bin && v1.value0.value0 === "||") {
               return function __do() {
-                  var lv$prime = evalExpr(v)(v.exprs.value0.value0.value1)();
-                  var $96 = $foreign.toBoolean(lv$prime);
-                  if ($96) {
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: lv$prime,
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                  var lv$prime = evalExpr(v)(v1.value0.value1)();
+                  var $64 = $foreign.toBoolean(lv$prime);
+                  if ($64) {
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(lv$prime)(exprs$prime));
                   };
-                  var rv$prime = evalExpr(v)(v.exprs.value0.value0.value2)();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: rv$prime,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var rv$prime = evalExpr(v)(v1.value0.value2)();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(rv$prime)(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Bin && v.exprs.value0.value0.value0 === "&&") {
+          if (v1.value0 instanceof BotScript.Bin && v1.value0.value0 === "&&") {
               return function __do() {
-                  var lv$prime = evalExpr(v)(v.exprs.value0.value0.value1)();
-                  var $100 = $foreign.toBoolean(lv$prime);
-                  if ($100) {
-                      var rv$prime = evalExpr(v)(v.exprs.value0.value0.value2)();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: rv$prime,
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                  var lv$prime = evalExpr(v)(v1.value0.value1)();
+                  var $68 = $foreign.toBoolean(lv$prime);
+                  if ($68) {
+                      var rv$prime = evalExpr(v)(v1.value0.value2)();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(rv$prime)(exprs$prime));
                   };
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: lv$prime,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(lv$prime)(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Bin) {
+          if (v1.value0 instanceof BotScript.Bin) {
               return function __do() {
-                  var lv$prime = evalExpr(v)(v.exprs.value0.value0.value1)();
-                  var rv$prime = evalExpr(v)(v.exprs.value0.value0.value2)();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.evalBin(v.exprs.value0.value0.value0)(lv$prime)(rv$prime),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var lv$prime = evalExpr(v)(v1.value0.value1)();
+                  var rv$prime = evalExpr(v)(v1.value0.value2)();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.evalBin(v1.value0.value0)(lv$prime)(rv$prime))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Abs) {
-              var syms = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(v.exprs.value0.value0.value0);
-              var grds = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v.exprs.value0.value0.value0);
-              var func = make$primeevent$primeaction(syms)(v.exprs.value0.value0.value1)(v);
-              return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                  val: func,
-                  cur: machine$prime.cur,
-                  env: machine$prime.env,
-                  exprs: machine$prime.exprs,
-                  states: machine$prime.states
-              }));
+          if (v1.value0 instanceof BotScript.Abs) {
+              var syms = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(v1.value0.value0);
+              var grds = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v1.value0.value0);
+              var func = make$primeevent$primeaction(syms)(v1.value0.value1)(v);
+              return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(func)(exprs$prime)));
           };
-          if (v.exprs.value0.value0 instanceof BotScript.App) {
+          if (v1.value0 instanceof BotScript.App) {
               return function __do() {
-                  var args$prime = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExprLiftedStmt(v))(v.exprs.value0.value0.value1)();
-                  if (v.exprs.value0.value0.value0 instanceof BotScript.Dot) {
-                      var obj$prime = evalExpr(v)(v.exprs.value0.value0.value0.value0)();
-                      var mem$prime = BotScript.toTerm("String")(v.exprs.value0.value0.value0.value1);
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: $foreign.evalApp(detailShow(v.exprs.value0.value0.value0.value0))(obj$prime)(mem$prime)(args$prime),
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                  var args$prime = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExprLiftedStmt(v))(v1.value0.value1)();
+                  if (v1.value0.value0 instanceof BotScript.Dot) {
+                      var obj$prime = evalExpr(v)(v1.value0.value0.value0)();
+                      var mem$prime = BotScript.toTerm("String")(v1.value0.value0.value1);
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.evalApp(detailShow(v1.value0.value0.value0))(obj$prime)(mem$prime)(args$prime))(exprs$prime));
                   };
-                  if (v.exprs.value0.value0.value0 instanceof BotScript.Sub) {
-                      var obj$prime = evalExpr(v)(v.exprs.value0.value0.value0.value0)();
-                      var sub$prime = evalExpr(v)(v.exprs.value0.value0.value0.value1)();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: $foreign.evalApp(detailShow(v.exprs.value0.value0.value0.value0))(obj$prime)(sub$prime)(args$prime),
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                  if (v1.value0.value0 instanceof BotScript.Sub) {
+                      var obj$prime = evalExpr(v)(v1.value0.value0.value0)();
+                      var sub$prime = evalExpr(v)(v1.value0.value0.value1)();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.evalApp(detailShow(v1.value0.value0.value0))(obj$prime)(sub$prime)(args$prime))(exprs$prime));
                   };
-                  var expr$prime = evalExpr(v)(v.exprs.value0.value0.value0)();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.evalApp(detailShow(v.exprs.value0.value0.value0))(expr$prime)(Undefined["undefined"])(args$prime),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var expr$prime = evalExpr(v)(v1.value0.value0)();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.evalApp(detailShow(v1.value0.value0))(expr$prime)(Undefined["undefined"])(args$prime))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Sub) {
+          if (v1.value0 instanceof BotScript.Sub) {
               return function __do() {
-                  var obj$prime = evalExpr(v)(v.exprs.value0.value0.value0)();
-                  var sub$prime = evalExpr(v)(v.exprs.value0.value0.value1)();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.memberOf(obj$prime)(sub$prime),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var obj$prime = evalExpr(v)(v1.value0.value0)();
+                  var sub$prime = evalExpr(v)(v1.value0.value1)();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.memberOf(obj$prime)(sub$prime))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Arr) {
+          if (v1.value0 instanceof BotScript.Arr) {
               return function __do() {
-                  var val = Data_Functor.map(Effect.functorEffect)(BotScript.toTerm("Array"))(Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExpr(v))(v.exprs.value0.value0.value0))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: val,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var val = Data_Functor.map(Effect.functorEffect)(BotScript.toTerm("Array"))(Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExpr(v))(v1.value0.value0))();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val)(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Dot) {
+          if (v1.value0 instanceof BotScript.Dot) {
               return function __do() {
-                  var obj$prime = evalExpr(v)(v.exprs.value0.value0.value0)();
-                  var mem$prime = BotScript.toTerm("String")(v.exprs.value0.value0.value1);
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.memberOf(obj$prime)(mem$prime),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var obj$prime = evalExpr(v)(v1.value0.value0)();
+                  var mem$prime = BotScript.toTerm("String")(v1.value0.value1);
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.memberOf(obj$prime)(mem$prime))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Var) {
-              var v1 = BotScriptEnv.assocVar(v.exprs.value0.value0.value0)(v.env);
-              if (v1 instanceof Data_Maybe.Just) {
-                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                      val: v1.value0,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  }));
+          if (v1.value0 instanceof BotScript.Var) {
+              var v2 = BotScriptEnv.assocVar(v1.value0.value0)(env);
+              if (v2 instanceof Data_Maybe.Just) {
+                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(v2.value0)(exprs$prime)));
               };
-              if (v1 instanceof Data_Maybe.Nothing) {
+              if (v2 instanceof Data_Maybe.Nothing) {
                   var none$prime = $foreign.none(Undefined["undefined"]);
-                  var v2 = BotScriptEnv.insert(v.env)(v.exprs.value0.value0.value0)(none$prime);
-                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                      val: none$prime,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  }));
+                  var v3 = BotScriptEnv.insert(env)(v1.value0.value0)(none$prime);
+                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(none$prime)(exprs$prime)));
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 248, column 13 - line 253, column 65): " + [ v1.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 296, column 13 - line 301, column 73): " + [ v2.constructor.name ]);
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Obj) {
-              var v1 = Data_Array.unzip(v.exprs.value0.value0.value0);
-              var keys$prime = Data_Functor.map(Data_Functor.functorArray)(BotScript.toTerm(""))(v1.value0);
+          if (v1.value0 instanceof BotScript.Obj) {
+              var v2 = Data_Array.unzip(v1.value0.value0);
+              var keys$prime = Data_Functor.map(Data_Functor.functorArray)(BotScript.cast)(v2.value0);
               return function __do() {
-                  var values$prime = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExpr(v))(v1.value1)();
-                  var val = evalExpr(v)(new BotScript.App(new BotScript.Dot(new BotScript.Var("Object"), "fromEntries"), [ BotScript.Trm.create(BotScript.toTerm("")(Data_Array.zipWith(function (a) {
+                  var values$prime = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExpr(v))(v2.value1)();
+                  var val = evalExpr(v)(new BotScript.App(new BotScript.Dot(new BotScript.Var("Object"), "fromEntries"), [ BotScript.Trm.create(BotScript.cast(Data_Array.zipWith(function (a) {
                       return function (b) {
-                          return BotScript.toTerm("")([ a, b ]);
+                          return BotScript.cast([ a, b ]);
                       };
                   })(keys$prime)(values$prime))) ]))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: val,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val)(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Going) {
-              var v1 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v2) {
-                  return v2.value0 === v.exprs.value0.value0.value0;
+          if (v1.value0 instanceof BotScript.Going) {
+              var v2 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v3) {
+                  return v3.value0 === v1.value0.value0;
               })(v.states);
-              if (v1 instanceof Data_Maybe.Just) {
-                  var top$primeenv = BotScriptEnv.topEnv(v.env);
+              if (v2 instanceof Data_Maybe.Just) {
+                  var top$primeenv = BotScriptEnv.topEnv(env);
                   return function __do() {
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(DrrrBot.setcur(v.exprs.value0.value0.value0))();
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.clearTimer(v.cur))();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          cur: v.exprs.value0.value0.value0,
-                          env: top$primeenv,
-                          exprs: new Data_List_Types.Cons(new Data_List_Types.Cons(v1.value0.value1, Data_List_Types.Nil.value), Data_List_Types.Nil.value),
-                          states: v.states,
-                          val: v.val
-                      });
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropEvent(v.events)(v.cur))();
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropTimer(v.timers)(v.cur))();
+                      return Control_Monad_Rec_Class.Loop.create($foreign.setMachine(v)([ "cur", "env", "exprs" ])([ BotScript.cast(v1.value0.value0), BotScript.cast(top$primeenv), BotScript.cast(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, Data_List_Types.Nil.value), Data_List_Types.Nil.value)) ]));
                   };
               };
-              if (v1 instanceof Data_Maybe.Nothing) {
+              if (v2 instanceof Data_Maybe.Nothing) {
                   return function __do() {
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("state <" + (v.exprs.value0.value0.value0 + "> not found")))();
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("state <" + (v1.value0.value0 + "> not found")))();
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 269, column 13 - line 281, column 38): " + [ v1.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 317, column 13 - line 332, column 38): " + [ v2.constructor.name ]);
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Visit) {
-              var v1 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v2) {
-                  return v2.value0 === v.exprs.value0.value0.value0;
+          if (v1.value0 instanceof BotScript.Visit) {
+              var v2 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v3) {
+                  return v3.value0 === v1.value0.value0;
               })(v.states);
-              if (v1 instanceof Data_Maybe.Just) {
+              if (v2 instanceof Data_Maybe.Just) {
                   return function __do() {
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(DrrrBot.setcur(v.exprs.value0.value0.value0))();
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.clearTimer(v.cur))();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          exprs: new Data_List_Types.Cons(new Data_List_Types.Cons(v1.value0.value1, new Data_List_Types.Cons(new BotScript.Reset(v.cur), v.exprs.value0.value1)), v.exprs.value1),
-                          cur: v.cur,
-                          env: v.env,
-                          states: v.states,
-                          val: v.val
-                      });
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropEvent(v.events)(v.cur))();
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropTimer(v.timers)(v.cur))();
+                      return Control_Monad_Rec_Class.Loop.create(setExprs(v)(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, new Data_List_Types.Cons(new BotScript.Reset(v.cur), v1.value1.value0)), v1.value1.value1)));
                   };
               };
-              if (v1 instanceof Data_Maybe.Nothing) {
+              if (v2 instanceof Data_Maybe.Nothing) {
                   return function __do() {
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("state <" + (v.exprs.value0.value0.value0 + "> not found")))();
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("state <" + (v1.value0.value0 + "> not found")))();
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 284, column 13 - line 294, column 38): " + [ v1.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 335, column 13 - line 348, column 38): " + [ v2.constructor.name ]);
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Reset) {
+          if (v1.value0 instanceof BotScript.Reset) {
               return function __do() {
-                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(DrrrBot.setcur(v.exprs.value0.value0.value0))();
-                  return new Control_Monad_Rec_Class.Loop(machine$prime);
+                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropEvent(v.events)(v.cur))();
+                  return new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Group) {
-              var new$primeenv = BotScriptEnv.pushEnv(v.env);
-              return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create({
-                  env: new$primeenv,
-                  val: $foreign.none(Undefined["undefined"]),
-                  exprs: new Data_List_Types.Cons(v.exprs.value0.value0.value0, new Data_List_Types.Cons(v.exprs.value0.value1, v.exprs.value1)),
-                  cur: v.cur,
-                  states: v.states
-              }));
+          if (v1.value0 instanceof BotScript.Group) {
+              var new$primeenv = BotScriptEnv.pushEnv(env);
+              return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create($foreign.setMachine(v)([ "val", "env", "exprs" ])([ $foreign.none(Undefined["undefined"]), BotScript.cast(new$primeenv), BotScript.cast(new Data_List_Types.Cons(v1.value0.value0, new Data_List_Types.Cons(v1.value1.value0, v1.value1.value1))) ])));
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Event) {
-              var v1 = (function () {
-                  if (v.exprs.value0.value0.value1 instanceof BotScript.Abs) {
-                      return new Data_Tuple.Tuple(v.exprs.value0.value0.value1.value0, v.exprs.value0.value0.value1.value1);
+          if (v1.value0 instanceof BotScript.Event) {
+              var v2 = (function () {
+                  if (v1.value0.value1 instanceof BotScript.Abs) {
+                      return new Data_Tuple.Tuple(v1.value0.value1.value0, v1.value0.value1.value1);
                   };
-                  return new Data_Tuple.Tuple([  ], v.exprs.value0.value0.value1);
+                  return new Data_Tuple.Tuple([  ], v1.value0.value1);
               })();
-              var syms = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(v1.value0);
-              var grds = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v1.value0);
+              var syms = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.fst)(v2.value0);
+              var grds = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v2.value0);
               return function __do() {
                   var guards = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExpr(v))(grds)();
-                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(DrrrBot.listen(v.cur)(v.exprs.value0.value0.value0)(guards)(make$primeevent$primeaction(syms)(v1.value1)(v)))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.none(Undefined["undefined"]),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.meetEvent(v.events)(v.cur)(v1.value0.value0)(guards)(make$primeevent$primeaction(syms)(v2.value1)(v)))();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Renew) {
-              return function __do() {
-                  var val$prime = evalExprLiftedStmt(v)(v.exprs.value0.value0.value1)();
-                  if (v.exprs.value0.value0.value0 instanceof BotScript.Var) {
-                      var v1 = BotScriptEnv.insert(v.env)(v.exprs.value0.value0.value0.value0)(val$prime);
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: val$prime,
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+          if (v1.value0 instanceof BotScript.Renew) {
+              if (v1.value0.value0 instanceof BotScript.Var) {
+                  return function __do() {
+                      var val$prime = evalExprLiftedStmt(v)(v1.value0.value1)();
+                      var v2 = BotScriptEnv.insert(env)(v1.value0.value0.value0)(val$prime);
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime));
                   };
-                  if (v.exprs.value0.value0.value0 instanceof BotScript.Dot) {
-                      var obj$prime = evalExpr(v)(v.exprs.value0.value0.value0.value0)();
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.updMem(obj$prime)(v.exprs.value0.value0.value0.value1)(val$prime))();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: val$prime,
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+              };
+              if (v1.value0.value0 instanceof BotScript.Dot) {
+                  return function __do() {
+                      var val$prime = evalExprLiftedStmt(v)(v1.value0.value1)();
+                      var obj$prime = evalExpr(v)(v1.value0.value0.value0)();
+                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.updMem(obj$prime)(v1.value0.value0.value1)(val$prime))();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime));
                   };
-                  if (v.exprs.value0.value0.value0 instanceof BotScript.Sub) {
-                      var obj$prime = evalExpr(v)(v.exprs.value0.value0.value0.value0)();
-                      var sub$prime = evalExpr(v)(v.exprs.value0.value0.value0.value1)();
+              };
+              if (v1.value0.value0 instanceof BotScript.Sub) {
+                  return function __do() {
+                      var val$prime = evalExprLiftedStmt(v)(v1.value0.value1)();
+                      var obj$prime = evalExpr(v)(v1.value0.value0.value0)();
+                      var sub$prime = evalExpr(v)(v1.value0.value0.value1)();
                       Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.updMem(obj$prime)(sub$prime)(val$prime))();
-                      return Control_Monad_Rec_Class.Loop.create({
-                          val: val$prime,
-                          cur: machine$prime.cur,
-                          env: machine$prime.env,
-                          exprs: machine$prime.exprs,
-                          states: machine$prime.states
-                      });
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime));
                   };
+              };
+              return function __do() {
+                  var val$prime = evalExprLiftedStmt(v)(v1.value0.value1)();
                   Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.logShow(Data_Show.showString)("invalid renew"))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: val$prime,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Ifels) {
+          if (v1.value0 instanceof BotScript.Ifels) {
               return function __do() {
-                  var prd$prime = evalExpr(v)(v.exprs.value0.value0.value0)();
-                  var act$prime = $foreign.bool(prd$prime)(v.exprs.value0.value0.value1)(v.exprs.value0.value0.value2);
-                  return Control_Monad_Rec_Class.Loop.create({
-                      exprs: new Data_List_Types.Cons(new Data_List_Types.Cons(act$prime, v.exprs.value0.value1), v.exprs.value1),
-                      cur: v.cur,
-                      env: v.env,
-                      states: v.states,
-                      val: v.val
-                  });
+                  var prd$prime = evalExpr(v)(v1.value0.value0)();
+                  var act$prime = $foreign.bool(prd$prime)(v1.value0.value1)(v1.value0.value2);
+                  return Control_Monad_Rec_Class.Loop.create(setExprs(v)(new Data_List_Types.Cons(new Data_List_Types.Cons(act$prime, v1.value1.value0), v1.value1.value1)));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.While) {
+          if (v1.value0 instanceof BotScript.While) {
               return function __do() {
-                  var prd$prime = evalExpr(v)(v.exprs.value0.value0.value0)();
-                  var nxt$prime = $foreign.bool(prd$prime)(new Data_List_Types.Cons(v.exprs.value0.value0.value1, new Data_List_Types.Cons(v.exprs.value0.value0, v.exprs.value0.value1)))(v.exprs.value0.value1);
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: prd$prime,
-                      exprs: new Data_List_Types.Cons(nxt$prime, v.exprs.value1),
-                      cur: v.cur,
-                      env: v.env,
-                      states: v.states
-                  });
+                  var prd$prime = evalExpr(v)(v1.value0.value0)();
+                  var nxt$prime = $foreign.bool(prd$prime)(new Data_List_Types.Cons(v1.value0.value1, new Data_List_Types.Cons(v1.value0, v1.value1.value0)))(v1.value1.value0);
+                  return Control_Monad_Rec_Class.Loop.create($foreign.setMachine(v)([ "val", "exprs" ])([ prd$prime, BotScript.cast(new Data_List_Types.Cons(nxt$prime, v1.value1.value1)) ]));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Timer) {
+          if (v1.value0 instanceof BotScript.Timer) {
               return function __do() {
-                  var expr$prime = evalExpr(v)(liftAbs(v.exprs.value0.value0.value1))();
-                  var prd$prime = evalExpr(v)(v.exprs.value0.value0.value0)();
-                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.setTimer(v.cur)(prd$prime)(expr$prime))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: $foreign.none(Undefined["undefined"]),
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var expr$prime = evalExpr(v)(liftAbs(v1.value0.value1))();
+                  var prd$prime = evalExpr(v)(v1.value0.value0)();
+                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.hangTimer(v.timers)(v.cur)(prd$prime)(expr$prime))();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
               };
           };
-          if (v.exprs.value0.value0 instanceof BotScript.Later) {
+          if (v1.value0 instanceof BotScript.Later) {
               return function __do() {
-                  var val = evalExpr(v)(new BotScript.App(new BotScript.Var("setTimeout"), [ liftAbs(v.exprs.value0.value0.value1), v.exprs.value0.value0.value0 ]))();
-                  return Control_Monad_Rec_Class.Loop.create({
-                      val: val,
-                      cur: machine$prime.cur,
-                      env: machine$prime.env,
-                      exprs: machine$prime.exprs,
-                      states: machine$prime.states
-                  });
+                  var val = evalExpr(v)(new BotScript.App(new BotScript.Var("setTimeout"), [ liftAbs(v1.value0.value1), v1.value0.value0 ]))();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val)(exprs$prime));
               };
           };
           return function __do() {
-              Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("unhandled expression: " + Data_Show.show(BotScript.showExpr)(v.exprs.value0.value0)))();
-              return Control_Monad_Rec_Class.Loop.create({
-                  val: $foreign.none(Undefined["undefined"]),
-                  cur: machine$prime.cur,
-                  env: machine$prime.env,
-                  exprs: machine$prime.exprs,
-                  states: machine$prime.states
-              });
+              Effect_Class.liftEffect(Effect_Class.monadEffectEffect)(Effect_Console.log("unhandled expression: " + Data_Show.show(BotScript.showExpr)(v1.value0)))();
+              return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
           };
       };
-      throw new Error("Failed pattern match at BotScriptVM (line 120, column 1 - line 120, column 63): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptVM (line 156, column 1 - line 156, column 63): " + [ v.constructor.name ]);
   };
   var make$primeevent$primeaction = function (syms) {
       return function (expr) {
-          return function (v) {
+          return function (machine) {
               return $foreign.toVaArgFunction(function (args) {
-                  var env$prime = bind$primeevent$primevars(Data_Array.cons("args")(syms))(args)(BotScriptEnv.pushEnv(v.env));
-                  var machine$prime = {
-                      exprs: new Data_List_Types.Cons(new Data_List_Types.Cons(expr, Data_List_Types.Nil.value), Data_List_Types.Nil.value),
-                      env: env$prime,
-                      cur: v.cur,
-                      states: v.states,
-                      val: v.val
-                  };
+                  var env = getEnv(machine);
+                  var env$prime = bind$primeevent$primevars(Data_Array.cons("args")(syms))(args)(BotScriptEnv.pushEnv(env));
+                  var v = $foreign.setMachine(machine)([ "exprs", "env" ])([ BotScript.cast(new Data_List_Types.Cons(new Data_List_Types.Cons(expr, Data_List_Types.Nil.value), Data_List_Types.Nil.value)), BotScript.cast(env$prime) ]);
                   return function __do() {
-                      var machine$prime$prime = Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(machine$prime)();
-                      return machine$prime$prime.val;
+                      var machine$prime = Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(machine)();
+                      var v1 = $foreign.setMachine(machine$prime)([ "env" ])([ BotScript.cast(env) ]);
+                      return machine$prime.val;
                   };
               });
           };
@@ -24326,44 +24142,26 @@ var PS = {};
   var evalExpr = function (machine) {
       return function (expr) {
           return function __do() {
-              var x = Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)({
-                  val: machine.val,
-                  cur: machine.cur,
-                  env: machine.env,
-                  exprs: new Data_List_Types.Cons(new Data_List_Types.Cons(expr, Data_List_Types.Nil.value), Data_List_Types.Nil.value),
-                  states: machine.states
-              })();
+              var x = Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(setExprs(machine)(new Data_List_Types.Cons(new Data_List_Types.Cons(expr, Data_List_Types.Nil.value), Data_List_Types.Nil.value)))();
               return x.val;
           };
       };
   };
   var runStep = function (machine) {
       return function (v) {
-          return Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)({
-              val: $foreign.none(Undefined["undefined"]),
-              cur: machine.cur,
-              env: machine.env,
-              exprs: new Data_List_Types.Cons(v.value0, Data_List_Types.Nil.value),
-              states: machine.states
-          });
+          return Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(setValExprs(machine)($foreign.none(Undefined["undefined"]))(new Data_List_Types.Cons(v.value0, Data_List_Types.Nil.value)));
       };
   };
   var runVM = function (v) {
-      return function __do() {
-          $foreign.clearAllTimer();
-          DrrrBot.clearAllEvent();
-          return Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)({
-              val: $foreign.none(Undefined["undefined"]),
-              cur: "",
-              env: BotScriptEnv.pushEnv(BotScriptEnv.Top.value),
-              exprs: new Data_List_Types.Cons(v.value0, Data_List_Types.Nil.value),
-              states: v.value1
-          })();
-      };
+      var m = rawMachine(Undefined["undefined"]);
+      return Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(wrapMachine($foreign.setMachine(m)([ "exprs", "states" ])([ BotScript.cast(new Data_List_Types.Cons(v.value0, Data_List_Types.Nil.value)), BotScript.cast(v.value1) ])));
   };
+  exports["rawMachine"] = rawMachine;
+  exports["wrapMachine"] = wrapMachine;
   exports["runVM"] = runVM;
   exports["runStep"] = runStep;
   exports["none"] = $foreign.none;
+  exports["newObject"] = $foreign.newObject;
 })(PS);
 (function($PS) {
   // Generated by purs version 0.13.8
@@ -24381,13 +24179,7 @@ var PS = {};
   var Text_Parsing_Parser = $PS["Text.Parsing.Parser"];
   var Undefined = $PS["Undefined"];                
   var newMachine = function (x) {
-      return {
-          val: BotScriptVM.none(Undefined["undefined"]),
-          cur: "",
-          env: BotScriptEnv.pushEnv(BotScriptEnv.Top.value),
-          exprs: new Data_List_Types.Cons(Data_List_Types.Nil.value, Data_List_Types.Nil.value),
-          states: [  ]
-      };
+      return BotScriptVM.wrapMachine(BotScriptVM.rawMachine(x));
   };
   var main = Effect_Console.log("Welcome to use LambdaScript");
   var interact = function (machine) {
@@ -24402,7 +24194,7 @@ var PS = {};
                   return machine;
               };
           };
-          throw new Error("Failed pattern match at Main (line 37, column 5 - line 42, column 27): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Main (line 36, column 5 - line 41, column 27): " + [ v.constructor.name ]);
       };
   };
   var execute = function (ctx) {
@@ -24418,11 +24210,13 @@ var PS = {};
                   cur: "",
                   env: BotScriptEnv.Top.value,
                   exprs: Data_List_Types.Nil.value,
-                  states: [  ]
+                  states: [  ],
+                  events: BotScriptVM.newObject(Undefined["undefined"]),
+                  timers: BotScriptVM.newObject(Undefined["undefined"])
               };
           };
       };
-      throw new Error("Failed pattern match at Main (line 24, column 15 - line 34, column 16): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 20, column 15 - line 32, column 16): " + [ v.constructor.name ]);
   };
   var execute$prime = function (ctx) {
       return function __do() {
@@ -24447,5 +24241,4 @@ var PS = {};
   exports["execute'"] = execute$prime;
   exports["main"] = main;
 })(PS);
-PS["Main"].main();
-module.exports = PS;
+PS["Main"].main();module.exports = PS;

@@ -10,7 +10,7 @@ global.replmidx = 0;
 
 function evaluate(cmd, context, filename, callback) {
   let machine = LS.Main.interact(global.machines[global.replmidx])(cmd)();
-  callback(null, machine);
+  callback(null, machine.val);
 }
 
 let args = process.argv.slice(2);

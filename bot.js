@@ -79,14 +79,20 @@ class Bot{
   listen = null;
   history = null;
 
-  constructor(name, avatar, lang, agent, config){
+  constructor(...args){
+
+
+    let machine = args.find(v => typeof v === 'object');
+    args = args.filter(v => typeof v !== 'object');
+    let [name, avatar, lang, agent, config] = args;
     this.name = name;
     this.avatar = avatar;
     this.cookie = null;
     this.lang = lang || 'en-US';
     this.agent = agent || 'Bot';
     this.config = config || "config.json";
-    script_listen(this);
+
+    if(machine) script_listen(this, machine);
   }
 
   data(p){
@@ -298,7 +304,7 @@ class Bot{
       this.update(json => {
         let room = json;
         if(room && room.talks){
-          console.log(room.talks);
+          //console.log(room.talks);
           room.talks.forEach(talk => this.handle(talk));
         }
         handle_count -= 1;
@@ -392,13 +398,13 @@ function match_user(name, trip, nameTripRegex){
     return name.match(new RegExp(nameRegex, 'i'));
 }
 
-function script_listen(user){
+function script_listen(user, machine){
   function event_action(event, config, req){
 
-    var rules = LS.DrrrBot.events[""] || []
+    var rules = machine.events[""] || []
 
-    if(LS.DrrrBot.cur.length)
-      rules = rules.concat(LS.DrrrBot.events[LS.DrrrBot.cur] || [])
+    if(machine.cur.length)
+      rules = rules.concat(machine.events[machine.cur] || [])
 
     rules.map(([type, user_trip_regex, cont_regex, action])=> {
       if((Array.isArray(type) && type.includes(event)) || type == event){

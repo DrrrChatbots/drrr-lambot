@@ -600,7 +600,7 @@ werewolf = (lang) => {
 
 room = ""
 
-drrr = new Bot("WolfHost", "kanra-2x")
+drrr = new Bot(__machine__, "WolfHost", "kanra-2x")
 
 if room.length then {
   if drrr.load() then
