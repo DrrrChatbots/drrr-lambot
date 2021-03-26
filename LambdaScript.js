@@ -1994,7 +1994,7 @@ var PS = {};
       Top.value = new Top();
       return Top;
   })();
-  var topEnv = function ($copy_v) {
+  var topBase = function ($copy_v) {
       var $tco_done = false;
       var $tco_result;
       function $tco_loop(v) {
@@ -2005,12 +2005,19 @@ var PS = {};
           if (v instanceof Env) {
               if (v.value0.root instanceof Top) {
                   $tco_done = true;
-                  return v;
+                  return Top.value;
               };
-              $copy_v = v.value0.root;
-              return;
+              if (v.value0.root instanceof Env) {
+                  if (v.value0.root.value0.root instanceof Top) {
+                      $tco_done = true;
+                      return v;
+                  };
+                  $copy_v = v.value0.root;
+                  return;
+              };
+              throw new Error("Failed pattern match at BotScriptEnv (line 50, column 5 - line 56, column 9): " + [ v.value0.root.constructor.name ]);
           };
-          throw new Error("Failed pattern match at BotScriptEnv (line 33, column 1 - line 33, column 17): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at BotScriptEnv (line 47, column 1 - line 47, column 22): " + [ v.constructor.name ]);
       };
       while (!$tco_done) {
           $tco_result = $tco_loop($copy_v);
@@ -2032,7 +2039,7 @@ var PS = {};
               root: v
           });
       };
-      throw new Error("Failed pattern match at BotScriptEnv (line 29, column 1 - line 29, column 62): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptEnv (line 27, column 1 - line 27, column 22): " + [ v.constructor.name ]);
   };
   var popEnv = function (v) {
       if (v instanceof Top) {
@@ -2041,7 +2048,25 @@ var PS = {};
       if (v instanceof Env) {
           return v.value0.root;
       };
-      throw new Error("Failed pattern match at BotScriptEnv (line 39, column 1 - line 39, column 17): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptEnv (line 58, column 1 - line 58, column 21): " + [ v.constructor.name ]);
+  };
+  var changeBase = function (v) {
+      return function (baseEnv) {
+          if (v instanceof Top) {
+              return Top.value;
+          };
+          if (v instanceof Env) {
+              if (v.value0.root instanceof Top) {
+                  return baseEnv;
+              };
+              return new Env({
+                  lv: v.value0.lv,
+                  tab: v.value0.tab,
+                  root: changeBase(v.value0.root)(baseEnv)
+              });
+          };
+          throw new Error("Failed pattern match at BotScriptEnv (line 80, column 1 - line 80, column 32): " + [ v.constructor.name, baseEnv.constructor.name ]);
+      };
   };
   var assocVar = function ($copy_name) {
       return function ($copy_v) {
@@ -2059,7 +2084,7 @@ var PS = {};
                       $tco_done = true;
                       return Data_Maybe.Nothing.value;
                   };
-                  throw new Error("Failed pattern match at BotScriptEnv (line 49, column 5 - line 51, column 25): " + [ v1.constructor.name ]);
+                  throw new Error("Failed pattern match at BotScriptEnv (line 71, column 5 - line 73, column 25): " + [ v1.constructor.name ]);
               };
               if (v instanceof Env) {
                   var v1 = Foreign_Object.lookup(name)(v.value0.tab);
@@ -2072,9 +2097,9 @@ var PS = {};
                       $copy_v = v.value0.root;
                       return;
                   };
-                  throw new Error("Failed pattern match at BotScriptEnv (line 54, column 5 - line 56, column 38): " + [ v1.constructor.name ]);
+                  throw new Error("Failed pattern match at BotScriptEnv (line 76, column 5 - line 78, column 38): " + [ v1.constructor.name ]);
               };
-              throw new Error("Failed pattern match at BotScriptEnv (line 48, column 1 - line 51, column 25): " + [ name.constructor.name, v.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptEnv (line 69, column 1 - line 69, column 40): " + [ name.constructor.name, v.constructor.name ]);
           };
           while (!$tco_done) {
               $tco_result = $tco_loop($tco_var_name, $copy_v);
@@ -2103,9 +2128,9 @@ var PS = {};
                       $copy_v = v.value0.root;
                       return;
                   };
-                  throw new Error("Failed pattern match at BotScriptEnv (line 44, column 5 - line 46, column 37): " + [ v1.constructor.name ]);
+                  throw new Error("Failed pattern match at BotScriptEnv (line 65, column 5 - line 67, column 37): " + [ v1.constructor.name ]);
               };
-              throw new Error("Failed pattern match at BotScriptEnv (line 42, column 1 - line 42, column 27): " + [ key.constructor.name, v.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptEnv (line 62, column 1 - line 62, column 39): " + [ key.constructor.name, v.constructor.name ]);
           };
           while (!$tco_done) {
               $tco_result = $tco_loop($tco_var_key, $copy_v);
@@ -2126,7 +2151,7 @@ var PS = {};
               if (v3 instanceof Data_Maybe.Nothing) {
                   return false;
               };
-              throw new Error("Failed pattern match at BotScriptEnv (line 64, column 5 - line 66, column 25): " + [ v3.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptEnv (line 105, column 5 - line 107, column 25): " + [ v3.constructor.name ]);
           };
       };
   };
@@ -2146,15 +2171,17 @@ var PS = {};
                   })();
                   return v;
               };
-              throw new Error("Failed pattern match at BotScriptEnv (line 69, column 1 - line 69, column 39): " + [ v.constructor.name, key.constructor.name, val.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptEnv (line 110, column 1 - line 110, column 39): " + [ v.constructor.name, key.constructor.name, val.constructor.name ]);
           };
       };
   };
   exports["Top"] = Top;
   exports["pushEnv"] = pushEnv;
-  exports["topEnv"] = topEnv;
+  exports["topBase"] = topBase;
   exports["popEnv"] = popEnv;
   exports["assocVar"] = assocVar;
+  exports["changeBase"] = changeBase;
+  exports["update"] = update;
   exports["insert"] = insert;
 })(PS);
 (function($PS) {
@@ -23718,8 +23745,10 @@ var PS = {};
   var Effect_Console = $PS["Effect.Console"];
   var Undefined = $PS["Undefined"];                
   var wrapMachine = function (machine) {
-      var v = BotScriptEnv.insert(machine.env)("__machine__")(BotScript.cast(machine));
-      return machine;
+      var v = BotScriptEnv.insert(machine.env)("__this__")(BotScript.cast(machine));
+      var env$prime = BotScriptEnv.pushEnv(machine.env);
+      var v1 = BotScriptEnv.insert(env$prime)("__main__")(BotScript.cast(machine));
+      return $foreign.setMachine(machine)([ "env" ])([ BotScript.cast(env$prime) ]);
   };
   var unpackExprs = function (v) {
       if (v instanceof Data_List_Types.Cons && v.value0 instanceof Data_List_Types.Cons) {
@@ -23770,6 +23799,12 @@ var PS = {};
           return detailShow(v.value0) + ("[" + (detailShow(v.value1) + "]"));
       };
       return Data_Show.show(BotScript.showExpr)(v);
+  };
+  var cloneMachine = function (parent) {
+      var machine = rawMachine(Undefined["undefined"]);
+      var v = BotScriptEnv.insert(machine.env)("__this__")(BotScript.cast(machine));
+      var env$prime = BotScriptEnv.changeBase(parent.env)(machine.env);
+      return $foreign.setMachine(machine)([ "val", "cur", "env", "exprs", "states", "events", "timers" ])([ BotScript.cast(parent.val), BotScript.cast(parent.cur), BotScript.cast(env$prime), BotScript.cast(parent.exprs), BotScript.cast(parent.states), BotScript.cast(parent.events), BotScript.cast(parent.timers) ]);
   };
   var bind$primeevent$primevars = function (syms) {
       return function (args) {
@@ -23840,32 +23875,30 @@ var PS = {};
               return function __do() {
                   var val$prime = evalExpr(v)(v1.value0.value1)();
                   var val$prime$prime = $foreign.evalUna(v1.value0.value0)(val$prime);
-                  var loop$prime$prime = Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime$prime)(exprs$prime)));
-                  var loop$prime = Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime)));
                   if (v1.value0.value0 === "_++") {
                       lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
-                      return loop$prime();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime));
                   };
                   if (v1.value0.value0 === "_--") {
                       lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
-                      return loop$prime();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime)(exprs$prime));
                   };
                   if (v1.value0.value0 === "++_") {
                       lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
-                      return loop$prime$prime();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime$prime)(exprs$prime));
                   };
                   if (v1.value0.value0 === "--_") {
                       lvalUpdate(v)(v1.value0.value1)(val$prime$prime)();
-                      return loop$prime$prime();
+                      return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime$prime)(exprs$prime));
                   };
-                  return loop$prime$prime();
+                  return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(val$prime$prime)(exprs$prime));
               };
           };
           if (v1.value0 instanceof BotScript.Bin && v1.value0.value0 === "||") {
               return function __do() {
                   var lv$prime = evalExpr(v)(v1.value0.value1)();
-                  var $64 = $foreign.toBoolean(lv$prime);
-                  if ($64) {
+                  var $66 = $foreign.toBoolean(lv$prime);
+                  if ($66) {
                       return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(lv$prime)(exprs$prime));
                   };
                   var rv$prime = evalExpr(v)(v1.value0.value2)();
@@ -23875,8 +23908,8 @@ var PS = {};
           if (v1.value0 instanceof BotScript.Bin && v1.value0.value0 === "&&") {
               return function __do() {
                   var lv$prime = evalExpr(v)(v1.value0.value1)();
-                  var $68 = $foreign.toBoolean(lv$prime);
-                  if ($68) {
+                  var $70 = $foreign.toBoolean(lv$prime);
+                  if ($70) {
                       var rv$prime = evalExpr(v)(v1.value0.value2)();
                       return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(rv$prime)(exprs$prime));
                   };
@@ -23943,7 +23976,7 @@ var PS = {};
                   var v3 = BotScriptEnv.insert(env)(v1.value0.value0)(none$prime);
                   return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(none$prime)(exprs$prime)));
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 296, column 13 - line 301, column 73): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 305, column 13 - line 310, column 73): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Obj) {
               var v2 = Data_Array.unzip(v1.value0.value0);
@@ -23963,11 +23996,12 @@ var PS = {};
                   return v3.value0 === v1.value0.value0;
               })(v.states);
               if (v2 instanceof Data_Maybe.Just) {
-                  var top$primeenv = BotScriptEnv.topEnv(env);
+                  var base$primeenv = BotScriptEnv.topBase(env);
+                  var v3 = BotScriptEnv.update(base$primeenv)("__main__")(BotScript.cast(v));
                   return function __do() {
                       Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropEvent(v.events)(v.cur))();
                       Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropTimer(v.timers)(v.cur))();
-                      return Control_Monad_Rec_Class.Loop.create($foreign.setMachine(v)([ "cur", "env", "exprs" ])([ BotScript.cast(v1.value0.value0), BotScript.cast(top$primeenv), BotScript.cast(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, Data_List_Types.Nil.value), Data_List_Types.Nil.value)) ]));
+                      return Control_Monad_Rec_Class.Loop.create($foreign.setMachine(v)([ "cur", "env", "exprs" ])([ BotScript.cast(v1.value0.value0), BotScript.cast(base$primeenv), BotScript.cast(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, Data_List_Types.Nil.value), Data_List_Types.Nil.value)) ]));
                   };
               };
               if (v2 instanceof Data_Maybe.Nothing) {
@@ -23976,18 +24010,14 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 317, column 13 - line 332, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 326, column 13 - line 342, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Visit) {
               var v2 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v3) {
                   return v3.value0 === v1.value0.value0;
               })(v.states);
               if (v2 instanceof Data_Maybe.Just) {
-                  return function __do() {
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropEvent(v.events)(v.cur))();
-                      Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropTimer(v.timers)(v.cur))();
-                      return Control_Monad_Rec_Class.Loop.create(setExprs(v)(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, new Data_List_Types.Cons(new BotScript.Reset(v.cur), v1.value1.value0)), v1.value1.value1)));
-                  };
+                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setExprs(v)(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, new Data_List_Types.Cons(new BotScript.Reset(v.cur), v1.value1.value0)), v1.value1.value1))));
               };
               if (v2 instanceof Data_Maybe.Nothing) {
                   return function __do() {
@@ -23995,13 +24025,10 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 335, column 13 - line 348, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 345, column 13 - line 358, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Reset) {
-              return function __do() {
-                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.dropEvent(v.events)(v.cur))();
-                  return new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime));
-              };
+              return Control_Applicative.pure(Effect.applicativeEffect)(new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime)));
           };
           if (v1.value0 instanceof BotScript.Group) {
               var new$primeenv = BotScriptEnv.pushEnv(env);
@@ -24086,19 +24113,18 @@ var PS = {};
               return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
           };
       };
-      throw new Error("Failed pattern match at BotScriptVM (line 156, column 1 - line 156, column 63): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptVM (line 166, column 1 - line 166, column 63): " + [ v.constructor.name ]);
   };
   var make$primeevent$primeaction = function (syms) {
       return function (expr) {
           return function (machine) {
+              var machine$prime = cloneMachine(machine);
               return $foreign.toVaArgFunction(function (args) {
-                  var env = getEnv(machine);
-                  var env$prime = bind$primeevent$primevars(Data_Array.cons("args")(syms))(args)(BotScriptEnv.pushEnv(env));
-                  var v = $foreign.setMachine(machine)([ "exprs", "env" ])([ BotScript.cast(new Data_List_Types.Cons(new Data_List_Types.Cons(expr, Data_List_Types.Nil.value), Data_List_Types.Nil.value)), BotScript.cast(env$prime) ]);
+                  var env$prime = bind$primeevent$primevars(Data_Array.cons("args")(syms))(args)(BotScriptEnv.pushEnv(machine$prime.env));
+                  var v = $foreign.setMachine(machine$prime)([ "exprs", "env" ])([ BotScript.cast(new Data_List_Types.Cons(new Data_List_Types.Cons(expr, Data_List_Types.Nil.value), Data_List_Types.Nil.value)), BotScript.cast(env$prime) ]);
                   return function __do() {
-                      var machine$prime = Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(machine)();
-                      var v1 = $foreign.setMachine(machine$prime)([ "env" ])([ BotScript.cast(env) ]);
-                      return machine$prime.val;
+                      var m = Control_Monad_Rec_Class.tailRecM(Control_Monad_Rec_Class.monadRecEffect)(run)(machine$prime)();
+                      return m.val;
                   };
               });
           };

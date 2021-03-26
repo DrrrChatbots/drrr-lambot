@@ -72,15 +72,16 @@ function talk2event(talk){
 
 class Bot{
 
+  meta = null;
   events = {};
   states = {};
   cur_st = "";
   loopID = null;
   listen = null;
   history = null;
+  roomData = {};
 
   constructor(...args){
-
 
     let machine = args.find(v => typeof v === 'object');
     args = args.filter(v => typeof v !== 'object');
@@ -218,9 +219,24 @@ class Bot{
     if(this.history) url += `?update=${this.history.update}`;
     this.get(endpoint + url, res => {
       var json = JSON.parse(res.text);
+      //console.log("update ===> ", json);
+      if(json.users) this.roomData = json;
       callback(json);
       this.history = json;
     });
+  }
+
+  handleUser(talk){
+    if(talk.type === 'join'){
+      let users = this.roomData.users || []
+      let index = users.findIndex(u => u.id == talk.user.id);
+      if(index < 0) this.roomData.users.push(talk.user);
+    }
+    else if(talk.type === 'leave'){
+      let users = this.roomData.users || []
+      let index = users.findIndex(u => u.id == talk.user.id);
+      if(index >= 0) this.roomData.users.splice(index, 1);;
+    }
   }
 
   handle(talk){
@@ -293,26 +309,26 @@ class Bot{
 
   join(id, callback){
     this.get(endpoint + "/room/?id=" + id + "&api=json", res => {
-      if(callback)
-        callback(res.status== 200 && JSON.parse(res.text).message == 'OK')
-    });
+      let json = JSON.parse(res.text)
+      if(callback) callback(json)
+      var handle_count = 0;
+      let handle = () => {
+        if(handle_count) return;
+        handle_count += 1;
+        this.update(json => {
+          let room = json;
+          if(room && room.talks){
+            room.talks.forEach(talk => this.handleUser(talk));
+            room.talks.forEach(talk => this.handle(talk));
+          }
+          handle_count -= 1;
+        });
+      }
+      if(!this.loopID)
+        this.loopID = setInterval(handle, 5000);
+      handle();
 
-    var handle_count = 0;
-    let handle = () => {
-      if(handle_count) return;
-      handle_count += 1;
-      this.update(json => {
-        let room = json;
-        if(room && room.talks){
-          //console.log(room.talks);
-          room.talks.forEach(talk => this.handle(talk));
-        }
-        handle_count -= 1;
-      });
-    }
-    if(!this.loopID)
-      this.loopID = setInterval(handle, 5000);
-    handle();
+    });
   }
 
   room_api(cmd, callback){
@@ -331,11 +347,11 @@ class Bot{
 
   leave(callback){ this.room_api({'leave': 'leave'}, callback); }
 
-  roomName(name, callback){ this.room_api({'room_name': str(name)}, callback); }
+  roomName(name, callback){ this.room_api({'room_name': String(name)}, callback); }
 
-  roomDesc(desc, callback){ this.room_api({'room_description': str(desc)}, callback); }
+  roomDesc(desc, callback){ this.room_api({'room_description': String(desc)}, callback); }
 
-  dj(mode, callback){ this.room_api({'dj_mode': str(mode).lower()}, callback); }
+  dj(mode, callback){ this.room_api({'dj_mode': String(mode).lower()}, callback); }
 
   send(msg, url, callback){
     let cmd = {'message': msg };
@@ -373,7 +389,11 @@ class Bot{
   print = this.send.bind(this);
 
   /* alias for sendTo */
-  dm = this.sendTo.bind(this);
+  dm = function(name, ...args){
+    let users = this.roomData.users || []
+    let u = users.find(x => x.name === name)
+    this.sendTo((u && u.id) || "", ...args);
+  }
 
   /* alias for handOver */
   chown = this.handOver.bind(this);

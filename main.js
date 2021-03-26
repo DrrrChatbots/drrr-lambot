@@ -92,5 +92,6 @@ if(interact){
   if(!global.machines.length)
     global.machines.push(LS.Main.newMachine());
   //repl.start({ prompt: '> ', eval: evaluate });
-  repl.start({ prompt: '> ', eval: evaluate });
+  repl.start({ prompt: '> ', eval: evaluate })
+  .on('exit', () => {console.log("bye!"), process.exit(0)});
 }

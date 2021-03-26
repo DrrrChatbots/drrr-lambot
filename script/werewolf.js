@@ -20,7 +20,7 @@ i18n = {
     "noPlayer": "No player",
     "need5to8": len => "Need 5 - 8 people, " + len + " people current.",
     "noPlayerBeg": "No player, please start the game",
-    "prepare": "[+1] join, [-1] leave, [/who] participator, [/start] start",
+    "prepare": "[+1] join\n[-1] leave\n[/who] participator\n[/start] start",
     "UrRole": r =>  "You are " + r,
     "UrWerewolf": wvs => "You are werewolf, all werewolves are " + wvs,
     "night": "Night, please close your eyes/night",
@@ -46,10 +46,10 @@ i18n = {
     "onePoiSav": "Only poison or save once is allowed",
     "deadWitch": "You are dead witch",
     "notWitch": "You are not witch",
-    "hunter15s": "send any message in 15 secs to show you are hunter",
-    "fired": h => "Hunter @" + h + " fired...",
+    "hunter30s": "send any message in 30 secs to show you are hunter",
+    "fired": h => "Hunter @" + h + " fired... (please @ someone alive)",
     "survivors": ss => "Survivor:" + ss,
-    "hit": t => ", and hit " + t + " before he died",
+    "hit": t => "... and hit " + t + " before he died",
     "morning": "Sun Arise/morning",
     "died": us => us + " died",
     "rip30s": "R.I.P for 30 secs",
@@ -87,7 +87,7 @@ i18n = {
     "noPlayer": "沒有玩家",
     "need5to8": len => "需滿足 5 - 8 人, 目前 " + len + "人",
     "noPlayerBeg": "No player, please start the game",
-    "prepare": "/me [+1] 加入, [-1] 退出, [/who] 參賽者, [/start] 開始",
+    "prepare": "[+1] 加入\n[-1] 退出\n[/who] 參賽者\n[/start] 開始",
     "UrRole": r =>  "你的身份是：" + r,
     "UrWerewolf": wvs => "你是狼, 所有狼是：" + wvs,
     "night": "天黑請閉眼/night",
@@ -113,8 +113,8 @@ i18n = {
     "onePoiSav": "只能毒或救一次",
     "deadWitch": "你是死掉的女巫",
     "notWitch": "你不是女巫",
-    "hunter15s": "十五秒內發任何訊息以亮獵人牌",
-    "fired": h => "獵人 @" + h + " 在臨死前開了一槍並打到了...",
+    "hunter30s": "三十秒內發任何訊息以亮獵人牌",
+    "fired": h => "獵人 @" + h + " 在臨死前開了一槍並打到了...(@ 一個活人)",
     "hit": t => "這一槍落到了 @" + t + " 身上",
     "survivors": ss => "倖存者：" + ss,
     "morning": "東方漸泛魚肚白/morning",
@@ -169,6 +169,7 @@ rolesMap = {
   5: [0, 1, 1, 2, 3],
   6: [0, 0, 1, 1, 2, 3],
   7: [0, 0, 1, 1, 1, 2, 3],
+  //7: [0, 1, 1, 1, 2, 3, 4],
   8: [0, 0, 1, 1, 1, 2, 3, 4],
 }
 
@@ -226,14 +227,14 @@ state prepare {
   }
   event [msg, me] (user, cont: "^/who$") => {
     if names.length then {
-      drrr.print(T("players") + ":\n" + names.map((user, index) => String(index + 1) + ". " + user).join("\n"))
+      drrr.print(T("players")(names.map((user, index) => String(index + 1) + ". " + user).join("\n")))
     } else drrr.print(me(T("noPlayer")))
   }
   event [msg, me] (user, cont: "^/start$") => {
     if names.length in rolesMap then going prelude
     else drrr.print(me(T("need5to8")(String(names.length))))
   }
-  announce(me(T("prepare")))
+  announce(T("prepare"))
 }
 
 newPlayer = (name, role) => {
@@ -385,11 +386,12 @@ state night_witch {
 state hunter_ask {
   forEach(players, (p, index) => {
     if p.life && p.role == 4 then
-    later 1000 drrr.dm(p.name, T("hunter15s"))
+    later 1000 drrr.dm(p.name, T("hunter30s"))
   })
   event [dm, msg, me] (hunter, cont) => {
     if hunter in players then {
       if players[hunter].role == 4 then {
+        drrr.dm(hunter, "ok, you fired");
         show = 1
       }
     }
@@ -397,7 +399,8 @@ state hunter_ask {
 }
 
 state hunter_fire {
-  drrr.print(me(T("fired")(hunter)))
+  hunter = Object.values(players).find(p => p.role == 4)
+  drrr.print(me(T("fired")(hunter.name)))
   event [msg, me] (hunter, cont) => {
     if hunter in players then {
       if players[hunter].role == 4 then {
@@ -430,15 +433,15 @@ state night_end {
   later 3000 {
     if victim.length then {
 
-      announce(me(T("died")(victim.map((x)=>"@" + x).join(", "))))
+      drrr.print(me(T("died")(victim.map((x)=>"@" + x).join(", "))))
 
-      victim.forEach((name) => {
-        if players[name].role == 4 && players[name].diefor == "bite"
-        then visit hunter_ask
-      })
+      hunter = victim.find(name =>
+        players[name].role == 4 && players[name].diefor == "bite")
+
+      if hunter then visit hunter_ask
 
       later 3500 {
-        drrr.print(me(T("rip30s")))
+        announce(me(T("rip30s")))
         later 30000 {
           victim.forEach((name) => {
             players[name].life = false;
@@ -482,7 +485,6 @@ state day_vote {
 
 
   later 1000 drrr.print(T("voteNote")(survivor.map((u) => "@" + u.name).join("\n")))
-
 
   event [msg, me] (user, cont: "^/vote\\s+\\S+|^/execute") => {
     cont = cont.replace("/vote", "").trim()
@@ -534,12 +536,16 @@ state day_execute {
   louis = most(Object.values(vote).filter((x) => x != "no"))
   announce(me(T("execute")(louis.map((x) => "@" + x).join(", "))))
 
+  later 3000 {
+    drrr.print(Object.keys(vote).map(k => k + ": " + vote[k]).join("\n"))
+  }
+
   louis.forEach((name) => {
     if players[name].role == 4
     then visit hunter_ask
   })
 
-  later 3500 {
+  later 7000 {
     drrr.print(me(T("rip30s")))
     later 30000 {
       louis.forEach((name) => {
@@ -598,19 +604,19 @@ werewolf = (lang) => {
 
 // console.log("need call werewolf(lang) to start it,\n\"zh\" and \"en\" are available now")
 
-room = ""
+room = "2T50E9reeu"
 
-drrr = new Bot(__machine__, "WolfHost", "kanra-2x")
+drrr = new Bot(__this__, "WolfHost", "kanra-2x")
 
 if room.length then {
   if drrr.load() then
     drrr.join(room, () => {
-      werewolf("en");
+      werewolf("zh");
     });
   else drrr.login(() => {
     drrr.save();
     drrr.join(room, () => {
-      werewolf("en");
+      werewolf("zh");
     });
   })
 }
