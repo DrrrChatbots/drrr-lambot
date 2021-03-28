@@ -52,11 +52,6 @@ while(args.length){
     console.log(`$ node main.js script/werewolf.js`)
     console.log(`\n$ # Run scripts with different machines and enable repl`)
     console.log(`$ node main.js -i script/werewolf.js -- script/werewolf.js`)
-    console.log(`\nNote:`)
-    console.log(`\nDifferent machine will share the global event handler.`)
-    console.log(`It's because of the implementation before,`)
-    console.log(`so there are still some problems in multiple machine.`)
-    console.log(``)
     process.exit(0)
   }
   else if(modes[v]){

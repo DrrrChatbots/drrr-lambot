@@ -55,8 +55,8 @@ i18n = {
     "rip30s": "R.I.P for 30 secs",
     "morningSafe": "Morning, no one died",
     "speaking": n => "@" + n + " start speaking (end with [over])",
-    "voting": "Please start voting ([/vote] check voted, [/urge] reminder, [/execute] skip, [/vote name] or [/vote no] abstain)",
-    "voteNote": cans => "Message to vote, candidates:\n" + cans,
+    "voting": "Please start voting ([/vote] check voted, [/urge] reminder, [/execute] skip, dm [name] or [no] to abstain)",
+    "voteNote": cans => "Please dm me to vote, candidates:\n" + cans,
     "oneVote": "Only one vote is allowed",
     "checkVote": t => "Ok, you vote " + t,
     "voteDead": t => t + " is already dead",
@@ -122,8 +122,8 @@ i18n = {
     "rip30s": "請大家默哀三十秒",
     "morningSafe": "天亮了，沒有人死",
     "speaking": n => "請 @" + n + " 開始發言 ([over] 結尾)",
-    "voting": "請開始投票 ([/vote] 看已投票, [/urge] 催票, [/execute] 跳過投票, [/vote 人名] 或是 [/vote no] 棄票)",
-    "voteNote": cans => "發言以投票，選項有：\n" + cans,
+    "voting": "請開始投票 ([/vote] 看已投票, [/urge] 催票, [/execute] 跳過投票, 私信 [人名] 或是 [no] 棄票)",
+    "voteNote": cans => "請私信我投票，選項有：\n" + cans,
     "oneVote": "一人一票，落票無悔",
     "checkVote": t => "ok, 你投了 " + t,
     "voteDead": t => t + " 已經是個死人了，不要鞭屍好嗎。",
@@ -486,32 +486,32 @@ state day_vote {
 
   later 1000 drrr.print(T("voteNote")(survivor.map((u) => "@" + u.name).join("\n")))
 
-  event [msg, me] (user, cont: "^/vote\\s+\\S+|^/execute") => {
+  event dm (user, cont: "^/vote\\s+\\S+|^/execute") => {
     cont = cont.replace("/vote", "").trim()
     if user in players then {
       if players[user].life then {
         if cont.startsWith("/execute")
         then later 1000 going day_execute
         else if vote.hasOwnProperty(user)
-        then drrr.print(T("oneVote"))
+        then drrr.dm(user, T("oneVote"))
         else {
           the = select(cont, names)
           if the then {
             if players[the].life then {
               vote[user] = the
-              drrr.print(T("checkVote")(the))
+              drrr.dm(user, T("checkVote")(the))
               if Object.keys(vote).length == filter(players, p => p.life).length
               then later 3500 going day_execute
-            } else drrr.print(T("voteDead")(the))
+            } else drrr.dm(user, T("voteDead")(the))
           }
           else if cont.startsWith("no") then {
             vote[user] = "no"
-            drrr.print(T("abstain"))
+            drrr.dm(user, T("abstain"))
             if Object.keys(vote).length == filter(players, p => p.life).length
             then later 3500 going day_execute
-          } else drrr.print(T("noSuchPeople"))
+          } else drrr.dm(user, T("noSuchPeople"))
         }
-      } else drrr.print(T("deadVote"))
+      } else drrr.dm(user, T("deadVote"))
     } else drrr.print(me(T("beQuiet")(user)))
   }
   event [msg, me] (user, cont: "^/vote$") => {

@@ -25,7 +25,7 @@ And change current REPL machine by "global.replmidx = [machine index]"
 
 Examples:
 
-$ # Run it interativly
+$ # Run it interatively
 $ node main.js
 
 $ # Run the script
@@ -33,10 +33,4 @@ $ node main.js script/werewolf.js
 
 $ # Run scripts with different machines and enable repl
 $ node main.js -i script/werewolf.js -- script/werewolf.js
-
-Note:
-
-Different machine will share the global event handler.
-It's because of the implementation before,
-so there are still some problems in multiple machine.
 ```
