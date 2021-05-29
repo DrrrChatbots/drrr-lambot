@@ -23976,7 +23976,7 @@ var PS = {};
                   var v3 = BotScriptEnv.insert(env)(v1.value0.value0)(none$prime);
                   return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(none$prime)(exprs$prime)));
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 305, column 13 - line 310, column 73): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 304, column 13 - line 309, column 73): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Obj) {
               var v2 = Data_Array.unzip(v1.value0.value0);
@@ -24010,7 +24010,7 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 326, column 13 - line 342, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 325, column 13 - line 341, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Visit) {
               var v2 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v3) {
@@ -24025,7 +24025,7 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 345, column 13 - line 358, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 344, column 13 - line 357, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Reset) {
               return Control_Applicative.pure(Effect.applicativeEffect)(new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime)));
@@ -24113,7 +24113,7 @@ var PS = {};
               return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
           };
       };
-      throw new Error("Failed pattern match at BotScriptVM (line 166, column 1 - line 166, column 63): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptVM (line 165, column 1 - line 165, column 63): " + [ v.constructor.name ]);
   };
   var make$primeevent$primeaction = function (syms) {
       return function (expr) {
@@ -24200,6 +24200,7 @@ var PS = {};
   var BotScriptVM = $PS["BotScriptVM"];
   var Data_Either = $PS["Data.Either"];
   var Data_List_Types = $PS["Data.List.Types"];
+  var Data_Maybe = $PS["Data.Maybe"];
   var Data_Show = $PS["Data.Show"];
   var Effect_Console = $PS["Effect.Console"];
   var Text_Parsing_Parser = $PS["Text.Parsing.Parser"];
@@ -24220,8 +24221,18 @@ var PS = {};
                   return machine;
               };
           };
-          throw new Error("Failed pattern match at Main (line 36, column 5 - line 41, column 27): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Main (line 43, column 5 - line 48, column 27): " + [ v.constructor.name ]);
       };
+  };
+  var getMain = function (machine) {
+      var v = BotScriptEnv.assocVar("__main__")(machine.env);
+      if (v instanceof Data_Maybe.Just) {
+          return v.value0;
+      };
+      if (v instanceof Data_Maybe.Nothing) {
+          return Undefined["undefined"];
+      };
+      throw new Error("Failed pattern match at Main (line 22, column 3 - line 24, column 28): " + [ v.constructor.name ]);
   };
   var execute = function (ctx) {
       var v = BotScriptParser.parse(BotScriptParser.parseScript)(ctx);
@@ -24242,7 +24253,7 @@ var PS = {};
               };
           };
       };
-      throw new Error("Failed pattern match at Main (line 20, column 15 - line 32, column 16): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 27, column 15 - line 39, column 16): " + [ v.constructor.name ]);
   };
   var execute$prime = function (ctx) {
       return function __do() {
@@ -24258,9 +24269,10 @@ var PS = {};
       if (v instanceof Data_Either.Left) {
           return Effect_Console.log("error: " + Data_Show.show(Text_Parsing_Parser.showParseError)(v.value0));
       };
-      throw new Error("Failed pattern match at Main (line 44, column 15 - line 46, column 44): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 51, column 15 - line 53, column 44): " + [ v.constructor.name ]);
   };
   exports["newMachine"] = newMachine;
+  exports["getMain"] = getMain;
   exports["execute"] = execute;
   exports["interact"] = interact;
   exports["compile"] = compile;
