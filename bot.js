@@ -34,7 +34,6 @@ function fetch(url, [opts, body], callback){
 }
 
 function getCookie(res){
-  console.log(res)
   let headers = res.headers;
   let cookies = headers['Set-Cookie'] || headers['set-cookie'];
   // what if cookies is a string instead of an array
@@ -162,7 +161,11 @@ class Bot{
     fetch(url, [opts, data], callback);
   }
 
-  login(callback){
+  login(...args){
+    let callback = args.find(v => typeof v === 'function');
+    let ready = args.find(
+      v => typeof v === 'boolean') || true;
+
     function get_login_token(bot, callback){
       bot.get(endpoint + "/?api=json", res => {
         if(res.status == 200){
@@ -195,7 +198,9 @@ class Bot{
       this.post(endpoint + "/?api=json", form, res => {
         if(res.status == 200){
           this.cookie = getCookie(res);
-          this.getReady(() => callback && callback(res));
+          if(ready)
+            this.getReady(() => callback && callback(res));
+          else callback(res);
         }
         else{
           callback && callback(res);
@@ -217,9 +222,10 @@ class Bot{
 
   getRoom(callback){
     this.get(endpoint + "/room?api=json", res => {
+      // can set user and profile
       let json = JSON.parse(res.text);
-      this.room = json;
-      this.users = room.users;
+      this.room = json.room;
+      this.users = this.room.users;
       callback && callback(json);
     });
   }
@@ -262,7 +268,7 @@ class Bot{
   getReady(callback){
     this.getProfile(() => {
       this.getLoc(() => {
-        this.getLounge(() => callback);
+        this.getLounge(callback);
       });
     });
   }
