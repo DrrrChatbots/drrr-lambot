@@ -224,8 +224,10 @@ class Bot{
     this.get(endpoint + "/room?api=json", res => {
       // can set user and profile
       let json = JSON.parse(res.text);
-      this.room = json.room;
-      this.users = this.room.users;
+      this.loc = json.room ? 'room' : 'lounge';
+      this.room = json.room || false;
+      this.users =
+        (this.room && this.room.users) || false;
       callback && callback(json);
     });
   }
