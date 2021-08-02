@@ -19,7 +19,7 @@ function fetch(url, [opts, body], callback){
 
   let req = https.request(opts, res => {
     res.setEncoding('utf8');
-    var queue = '';
+    let queue = '';
     res.on('data', chunk => queue += chunk);
     res.on('end', () => {
       callback && callback({
@@ -34,14 +34,14 @@ function fetch(url, [opts, body], callback){
 }
 
 function getCookie(res){
-  var headers = res.headers;
-  var cookies = headers['Set-Cookie'] || headers['set-cookie'];
+  let headers = res.headers;
+  let cookies = headers['Set-Cookie'] || headers['set-cookie'];
   // what if cookies is a string instead of an array
   if ( (cookies != null) && (cookies[0].length == 1) ) {
     cookies = new Array(1);
     cookies[0] = headers['Set-Cookie'] || headers['set-cookie'];
   }
-  for (var i = 0; i < cookies.length; i++)
+  for (let i = 0; i < cookies.length; i++)
     cookies[i] = cookies[i].split(';')[0];
   return cookies.join(";");
 }
@@ -55,8 +55,8 @@ function writeJson(fn, obj){
   return fs.writeFileSync(fn, JSON.stringify(obj));
 }
 
-function talk2event(talk){
-  var evt = {
+function talk2event(talk, bot){
+  let evt = {
     type: "",
     user: (talk.from && talk.from.name) || "",
     trip: (talk.from && talk.from.tripcode) || "",
@@ -65,7 +65,7 @@ function talk2event(talk){
     url: talk.url || ""
   };
   if(talk.type === 'message')
-    evt.type = talk.to ? 'dm' : 'msg';
+    evt.type = talk.to ? (talk.from.name == bot.name ? 'dmto': 'dm') : 'msg';
   else evt.type = talk.type;
   return evt;
 }
@@ -79,7 +79,7 @@ class Bot{
   loopID = null;
   listen = null;
   history = null;
-  roomData = {};
+  room = {};
 
   constructor(...args){
 
@@ -93,7 +93,10 @@ class Bot{
     this.agent = agent || 'Bot';
     this.config = config || "config.json";
 
-    if(machine) script_listen(this, machine);
+    if(machine) {
+      console.log("start listening...")
+      script_listen(this, machine);
+    }
   }
 
   data(p){
@@ -158,22 +161,29 @@ class Bot{
     fetch(url, [opts, data], callback);
   }
 
-  login(callback){
+  login(...args){
+    let callback = args.find(v => typeof v === 'function');
+    let ready = args.find(
+      v => typeof v === 'boolean') || true;
+
     function get_login_token(bot, callback){
       bot.get(endpoint + "/?api=json", res => {
         if(res.status == 200){
           let data = JSON.parse(res.text);
-          callback(data['token'], getCookie(res));
+          if(data.redirect) return callback(res);
+          callback && callback(data['token'], getCookie(res));
         }
         else{
           console.log(res.status);
           console.log(res.text);
-          callback(undefined, undefined);
+          callback && callback(res);
         }
       });
     }
 
     get_login_token(this, (token, cookie) => {
+
+      if(!cookie) return callback && callback(token);
 
       let form = {
         'name' : this.name,
@@ -188,54 +198,108 @@ class Bot{
       this.post(endpoint + "/?api=json", form, res => {
         if(res.status == 200){
           this.cookie = getCookie(res);
-          if(callback) callback(this.cookie);
+          if(ready)
+            this.getReady(() => callback && callback(res));
+          else callback(res);
         }
         else{
-          console.log(res.status)
-          console.log(res.text);
-          if(callback) callback(undefined);
+          callback && callback(res);
         }
       });
     });
   }
 
-  lounge(callback){
+  getLounge(callback){
     this.get(endpoint + "/lounge?api=json", res => {
-      try{ var json = JSON.parse(res.text); }
+      let json;
+      try{ json = JSON.parse(res.text); }
       catch(e){ json = res.text; }
-      callback(json);
+      this.lounge = json;
+      this.rooms = json.rooms;
+      callback && callback(json);
     });
   }
 
-  room(callback){
+  getRoom(callback){
     this.get(endpoint + "/room?api=json", res => {
-      var json = JSON.parse(res.text);
-      callback(json);
+      // can set user and profile
+      let json = JSON.parse(res.text);
+      this.loc = json.room ? 'room' : 'lounge';
+      this.room = json.room || false;
+      this.users =
+        (this.room && this.room.users) || false;
+      callback && callback(json);
+    });
+  }
+
+  getProfile(callback){
+    this.get(endpoint + "/profile/?api=json", res => {
+      let json;
+      try{ json = JSON.parse(res.text); }
+      catch(e){ json = res.text; }
+      this.profile = json.profile;
+      callback && callback(json.profile);
+    });
+  }
+
+  getLoc(callback){
+    this.getRoom(info => {
+      this.setInfo(info);
+      callback && callback(this.loc);
+    })
+  }
+
+  setInfo(info){
+    if(info){
+      this.prevInfo = this.info;
+      this.info = info;
+      if(info.prfile)
+        this.profile = info.profile;
+      if(info.user)
+        this.user = info.user;
+      if(info.room){
+        this.room = info.room;
+        this.users = info.room.users;
+      }
+    }
+    if(info && info.redirect)
+      this.loc = info.redirect;
+    else this.loc = "room";
+  }
+
+  getReady(callback){
+    this.getProfile(() => {
+      this.getLoc(() => {
+        this.getLounge(callback);
+      });
     });
   }
 
   update(callback){
-    var url = "/json.php";
+    let url = "/json.php";
     if(this.history) url += `?update=${this.history.update}`;
     this.get(endpoint + url, res => {
-      var json = JSON.parse(res.text);
+      let json = JSON.parse(res.text);
       //console.log("update ===> ", json);
-      if(json.users) this.roomData = json;
-      callback(json);
+      if(json.users){
+        this.room = json;
+        this.users = json.users;
+      }
+      callback && callback(json);
       this.history = json;
     });
   }
 
   handleUser(talk){
     if(talk.type === 'join'){
-      let users = this.roomData.users || []
+      let users = this.room.users || []
       let index = users.findIndex(u => u.id == talk.user.id);
-      if(index < 0) this.roomData.users.push(talk.user);
+      if(index < 0) this.room.users.push(talk.user);
     }
     else if(talk.type === 'leave'){
-      let users = this.roomData.users || []
+      let users = this.room.users || []
       let index = users.findIndex(u => u.id == talk.user.id);
-      if(index >= 0) this.roomData.users.splice(index, 1);;
+      if(index >= 0) this.room.users.splice(index, 1);;
     }
   }
 
@@ -243,7 +307,7 @@ class Bot{
     // ignore room history
     if(!this.history) return;
 
-    let e = talk2event(talk);
+    let e = talk2event(talk, this);
     (this.events[e.type] || []).forEach(
       f => f(e.user, e.text, e.url, e.trip, e))
 
@@ -274,14 +338,6 @@ class Bot{
     dest();
   }
 
-  profile(callback){
-    this.get(endpoint + "/profile/?api=json", res => {
-      try{ var json = JSON.parse(res.text); }
-      catch(e){ var json = res.text; }
-      callback(json.profile);
-    });
-  }
-
   create(...args){
 
     let callback = args.find(v => typeof v === 'function');
@@ -310,8 +366,8 @@ class Bot{
   join(id, callback){
     this.get(endpoint + "/room/?id=" + id + "&api=json", res => {
       let json = JSON.parse(res.text)
-      if(callback) callback(json)
-      var handle_count = 0;
+      callback && callback(json)
+      let handle_count = 0;
       let handle = () => {
         if(handle_count) return;
         handle_count += 1;
@@ -377,6 +433,20 @@ class Bot{
 
   unban(uid, callback){ this.room_api({'unban': uid}, callback); }
 
+
+  // for werewolf room on drrr.com
+  player(name, player = false){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'player': player, to: u.id });
+  }
+
+  alive(name, alive = false){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'alive': alive, to: u.id });
+  }
+
   /* alias for extension name binding */
 
   /* alias for roomName */
@@ -390,7 +460,7 @@ class Bot{
 
   /* alias for sendTo */
   dm = function(name, ...args){
-    let users = this.roomData.users || []
+    let users = this.room.users || []
     let u = users.find(x => x.name === name)
     this.sendTo((u && u.id) || "", ...args);
   }
@@ -409,7 +479,7 @@ function name_trip_split(expr){
 }
 
 function match_user(name, trip, nameTripRegex){
-  var [nameRegex, tripRegex] = name_trip_split(nameTripRegex);
+  let [nameRegex, tripRegex] = name_trip_split(nameTripRegex);
   if(name === undefined) name = "";
   if(trip === undefined) trip = "";
   if(nameTripRegex.includes('#'))
@@ -421,9 +491,8 @@ function match_user(name, trip, nameTripRegex){
 function script_listen(user, machine){
   function event_action(event, config, req){
 
-    machine = LS.getMain(machine)();
-
-    var rules = machine.events[""] || []
+    machine = LS.Main.getMain(machine);
+    let rules = machine.events[""] || []
 
     if(machine.cur.length)
       rules = rules.concat(machine.events[machine.cur] || [])
