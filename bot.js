@@ -421,6 +421,8 @@ function match_user(name, trip, nameTripRegex){
 function script_listen(user, machine){
   function event_action(event, config, req){
 
+    machine = LS.getMain(machine)();
+
     var rules = machine.events[""] || []
 
     if(machine.cur.length)
