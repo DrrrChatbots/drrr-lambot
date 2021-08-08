@@ -70,9 +70,8 @@ function talk2event(talk, bot){
   return evt;
 }
 
-class Bot{
+class Bot {
 
-  meta = null;
   events = {};
   states = {};
   cur_st = "";
@@ -238,6 +237,10 @@ class Bot{
       try{ json = JSON.parse(res.text); }
       catch(e){ json = res.text; }
       this.profile = json.profile;
+      this.name = json.profile.name;
+      this.avatar = json.profile.icon;
+      this.lang = json.profile.lang;
+      this.agent = json.profile.device;
       callback && callback(json.profile);
     });
   }
@@ -279,7 +282,9 @@ class Bot{
     let url = "/json.php";
     if(this.history) url += `?update=${this.history.update}`;
     this.get(endpoint + url, res => {
-      let json = JSON.parse(res.text);
+      let json = false;
+      try { json = JSON.parse(res.text); }
+      catch (err){ callback(false); }
       //console.log("update ===> ", json);
       if(json.users){
         this.room = json;
@@ -291,6 +296,7 @@ class Bot{
   }
 
   handleUser(talk){
+    if(!talk.user) return;
     if(talk.type === 'join'){
       let users = this.room.users || []
       let index = users.findIndex(u => u.id == talk.user.id);
