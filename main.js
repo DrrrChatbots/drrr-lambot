@@ -76,7 +76,7 @@ if(chunk.length){
 while(units.length){
   let [m, code] = [units.shift(), units.shift()];
   try{
-    if(mode == "ls"){
+    if(m == "ls"){
       global.machines.push(LS.Main.execute(code)());
     }
     else eval(code);

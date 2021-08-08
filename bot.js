@@ -498,7 +498,6 @@ function script_listen(user, machine){
   function event_action(event, config, req){
 
     machine = LS.Main.getMain(machine);
-
     let rules = machine.events[""] || []
 
     if(machine.cur.length)
