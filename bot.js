@@ -321,9 +321,13 @@ class Bot {
       this.listen(e)
   }
 
-  event(type, callback){
-    this.events[type] = this.events || [];
-    this.events.push(callback);
+  event(types, callback){
+    if(!Array.isArray(types))
+      types = [types];
+    for(let type of types){
+      this.events[type] = this.events[type] || [];
+      this.events[type].push(callback);
+    }
   }
 
   state(name, callback){
