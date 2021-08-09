@@ -370,6 +370,7 @@ class Bot {
       if(res.status == 200)
         callback(res.text);
       else callback(false);
+      this.startHandle();
     });
   }
 
@@ -377,24 +378,27 @@ class Bot {
     this.get(endpoint + "/room/?id=" + id + "&api=json", res => {
       let json = JSON.parse(res.text)
       callback && callback(json)
-      let handle_count = 0;
-      let handle = () => {
-        if(handle_count) return;
-        handle_count += 1;
-        this.update(json => {
-          let room = json;
-          if(room && room.talks){
-            room.talks.forEach(talk => this.handleUser(talk));
-            room.talks.forEach(talk => this.handle(talk));
-          }
-          handle_count -= 1;
-        });
-      }
-      if(!this.loopID)
-        this.loopID = setInterval(handle, 5000);
-      handle();
-
+      this.startHandle();
     });
+  }
+
+  startHandle(){
+    let handle_count = 0;
+    let handle = () => {
+      if(handle_count) return;
+      handle_count += 1;
+      this.update(json => {
+        let room = json;
+        if(room && room.talks){
+          room.talks.forEach(talk => this.handleUser(talk));
+          room.talks.forEach(talk => this.handle(talk));
+        }
+        handle_count -= 1;
+      });
+    }
+    if(!this.loopID)
+      this.loopID = setInterval(handle, 5000);
+    handle();
   }
 
   room_api(cmd, callback){
