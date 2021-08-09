@@ -368,8 +368,9 @@ class Bot {
     this.post(endpoint + "/create_room/?api=json", form, res => {
       if(!callback) return;
       if(res.status == 200)
-        callback(res.text);
-      else callback(false);
+        this.getReady(() => callback && callback(res.text));
+      else
+        this.getReady(() => callback && callback(false));
       this.startHandle();
     });
   }
@@ -377,7 +378,7 @@ class Bot {
   join(id, callback){
     this.get(endpoint + "/room/?id=" + id + "&api=json", res => {
       let json = JSON.parse(res.text)
-      callback && callback(json)
+      this.getReady(() => callback && callback(json));
       this.startHandle();
     });
   }

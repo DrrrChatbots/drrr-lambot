@@ -27,7 +27,7 @@ i18n = {
     "configNotFit": (lim, len) => "Need " + lim + " people, " + len + " people current.",
     "noPlayerBeg": "No player, please start the game",
     "prepare": "[+1] join [-1] out [/go] start [/?] other",
-    "setting": "[/side] side mode\n[/clear] clear mode\n[/config (...)] config with optional int array ([1, 2, 3])",
+    "setting": "[/side] side mode\n[/noside] clear mode\n[/self] witch can save self\n[/noself] witch cannot save self\n[/set (...)] set config with optional int array ([1, 2, 3])\n[/setup] show setup",
     "UrRole": r =>  "You are " + r,
     "UrWerewolf": (wv, wvs) => "You are " + wv + ", all werewolves are " + wvs,
     "night": d => "The " + String(d) + ord(d) + " day. Night, please close your eyes.",
@@ -83,7 +83,7 @@ i18n = {
     "notPlayer": "You are not player",
     "alive": "Alive",
     "dead": "Dead",
-    "manual": "/help The manual\n/s Game State\n/w All Players\n/r Your Role\n/game Start Participating (Will restart if game is running)"
+    "manual": "/help The manual\n/s Game State\n/w All Players\n/r Your Role\n/alive name [false] set alive\n/player name [false] set player\n/game Start Participating (Will restart if game is running)"
   },
   "zh": {
     "notBeg": "尚未開始遊戲",
@@ -107,7 +107,7 @@ i18n = {
     "configNotFit": (lim, len) => "需滿足 " + lim + " 人, 目前 " + len + " 人",
     "noPlayerBeg": "沒有玩家，請開始報名程序",
     "prepare": "[+1] 加入 [-1] 退出 [/go] 開始 [/?] 其他",
-    "setting": "[/side] 屠邊\n[/clear] 屠城\n[/config (...)] 角色配置([1, 2, 3])",
+    "setting": "[/side] 屠邊\n[/noside] 屠城\n[/self] 女巫自救\n[/noself] 女巫無法自救\n[/set (...)] 角色配置([1, 2, 3])\n[/setup] 顯示配置",
     "UrRole": r =>  "你的身份是：" + r,
     "UrWerewolf": (wv, wvs) => "你是" + wv + ", 所有狼是：" + wvs,
     "night": d => "第 " + String(d) + " 天，天黑請閉眼/夜",
@@ -142,7 +142,7 @@ i18n = {
     "died": us => us + " 死了",
     "rip30s": "請大家默哀三十秒",
     "morningSafe": "天亮了，沒有人死",
-    "speaking": n => "請 @" + n + " 開始發言 ([over] 結尾), [/skip] 跳過此人, , [/expo name] 使用狼人自爆（白狼可帶走 name）",
+    "speaking": n => "請 @" + n + " 開始發言 ([over] 結尾), [/skip] 跳過此人, [/expo name] 使用狼人自爆（白狼可帶走 name）",
     "voting": "請開始投票（可私信）([/vote] 看已投票, [/urge] 催票, [/execute] 跳過投票, [/vote 人名] 或是 [/vote no] 棄票)",
     "voteNote": cans => "發言以投票，選項有：\n" + cans,
     "oneVote": "一人一票，落票無悔",
@@ -162,7 +162,7 @@ i18n = {
     "notPlayer": "你不是玩家",
     "alive": "活",
     "dead": "死",
-    "manual": "/help 本手冊\n/s 現在遊戲狀態\n/w 當前所有玩家\n/r 當前擔任角色\n/game 開始報名（如有遊戲則重新）"
+    "manual": "/help 本手冊\n/s 現在遊戲狀態\n/w 當前所有玩家\n/r 當前擔任角色\n/alive name [false] 設定活死\n/player name [false] 設定玩家\n/game 開始報名（如有遊戲則重新）"
   }
 }
 
@@ -179,13 +179,12 @@ players = {}
 victim = []
 vote = {}
 day = 1
-poison = 1
-medicine = 1
 vote_times = 0
 protect = ""
 
 // 0: kill side, 1: clear people
 kill_mode = 0
+save_self = 0
 
 announcement = me(T("notBeg"))
 announce = (msg) => {
@@ -195,18 +194,18 @@ announce = (msg) => {
 
 scene = (desc) => {
   announcement = desc
-  if room.host == drrr.user.id
+  if drrr.room.host == drrr.user.id
   then drrr.descr(desc.replace("/me", ""))
   else drrr.print(desc)
 }
 
 setAlive = (name, state) => {
-  if room.gameRoom && room.host == drrr.user.id
+  if drrr.room.gameRoom && drrr.room.host == drrr.user.id
   then drrr.alive(name, state)
 }
 
 setPlayer = (name, state) => {
-  if room.gameRoom && room.host == drrr.user.id
+  if drrr.room.gameRoom && drrr.room.host == drrr.user.id
   then drrr.player(name, state)
 }
 
@@ -272,11 +271,14 @@ rolesMap = {
        [rWolf, rWolf, rWolf, rVill, rVill, rVill, rSeer, rWitc, rHunt, rIdio],
        [rWolf, rWolf, rWolf, rHunt, rHunt, rHunt, rHunt, rHunt, rHunt, rHunt]],
   11: [[rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rVill, rWitc, rHunt, rGuar],
-       [rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rWitc, rHunt, rGuar, rIdio]],
+       [rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rWitc, rHunt, rGuar, rIdio],
+       [rWolf, rWolf, rWolf, rWitc, rWitc, rWitc, rWitc, rWitc, rWitc, rWitc, rWitc]],
   12: [[rWolf, rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rSeer, rWitc, rHunt, rGuar],
        [rBing, rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rSeer, rWitc, rHunt, rGuar],
        [rWing, rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rSeer, rWitc, rHunt, rGuar],
-       [rWolf, rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rSeer, rWitc, rHunt, rIdio]]
+       [rWolf, rWolf, rWolf, rWolf, rVill, rVill, rVill, rVill, rSeer, rWitc, rHunt, rIdio],
+       [rWolf, rWolf, rWolf, rWitc, rWitc, rWitc, rWitc, rWitc, rWitc, rWitc, rWitc,
+rWitc]]
 }
 
 getRandom = (min,max) => {
@@ -332,31 +334,29 @@ state prepare {
   players = {}
   vote = {}
   day = 1
-  poison = 1
-  medicine = 1
   vote_times = 0
   roles = []
   protect = ""
 
-  event [msg, me] (user, cont: "^\\+1$") => {
-    if names.includes(user) then
-    drrr.print(me(T("joined")(user)))
+  event [msg, me] (user, cont: "^\\+1\\s*$") => {
+    if names.includes(user)
+    then drrr.print(me(T("joined")(user)))
     else{
       names.push(user)
       drrr.print(me(T("joins")(user)))
     }
   }
-  event [msg, me] (user, cont: "^-1$") => {
+  event [msg, me] (user, cont: "^-1\\s*$") => {
     if names.includes(user) then {
       names.splice(names.indexOf(user), 1);
       drrr.print(me(T("leaves")(user)))
     }
     else drrr.print(me(T("notIn")(user)))
   }
-  event [msg, me] (user, cont: "^/go$") => {
+  event [msg, me] (user, cont: "^/go\\s*$") => {
     if (roles.length && names.length == roles.length)
       || (!roles.length && names.length in rolesMap) then {
-      if room.gameRoom && room.host == user.id then going initial
+      if drrr.room.gameRoom && drrr.room.host == drrr.user.id then going initial
       else going prelude
     }
     else drrr.print(me(T("configNotFit")(
@@ -364,19 +364,27 @@ state prepare {
       String(names.length)
     )))
   }
-  event [msg, me] (user, cont: "^/\\?$") => {
+  event [msg, me] (user, cont: "^/\\?\\s*$") => {
     drrr.print(T("setting"))
   }
-  event [msg, me] (user, cont: "^/side$") => {
+  event [msg, me] (user, cont: "^/side\\s*$") => {
     kill_mode = 0
     drrr.print(me("ok, side mode"))
   }
-  event [msg, me] (user, cont: "^/clear$") => {
+  event [msg, me] (user, cont: "^/noside\\s*$") => {
     kill_mode = 1
     drrr.print(me("ok, clear mode"))
   }
-  event [msg, me] (user, cont: "^/config") => {
-    config = cont.replace("/config", "").trim()
+  event [msg, me] (user, cont: "^/self\\s*$") => {
+    save_self = 1
+    drrr.print(me("ok, witch can save self"))
+  }
+  event [msg, me] (user, cont: "^/noself\\s*$") => {
+    save_self = 0
+    drrr.print(me("ok, witch cannot save self"))
+  }
+  event [msg, me] (user, cont: "^/set\\b") => {
+    config = cont.replace("/set", "").trim()
     valid_roles = "valid roles:\n" +
           Object.keys(roleName).map(k => String(k) + ": " + roleName[k]).join("\n")
     if config then {
@@ -391,8 +399,8 @@ state prepare {
         drrr.print("at least one werewolf")
       else if rs.filter(r => r == rSeer).length > 1 then
         drrr.print("seer cannot be more than one")
-      else if rs.filter(r => r == rWitc).length > 1 then
-        drrr.print("witch cannot be more than one")
+      // else if rs.filter(r => r == rWitc).length > 1 then
+      //   drrr.print("witch cannot be more than one")
       else if !rs.filter(r => isWolf(r)).length then
         drrr.print("at least one werewolf")
       else {
@@ -405,17 +413,27 @@ state prepare {
       drrr.print(valid_roles + "\nok, random config")
     }
   }
+  event [msg, me] (user, cont: "^/setup\\s*") => {
+    rstr = (if !roles.length
+            then "random roles"
+            else roles.map((r) => roleName[r]).join("\n"))
+    rstr = rstr + "\nkill mode: " + (if kill_mode then "clear" else "side")
+    rstr = rstr + "\nsave self: " + (if save_self then "yes" else "no")
+    drrr.print(rstr)
+  }
   announce(me(T("prepare")))
 }
 
 newPlayer = (name, role) => {
   name: name,
-    life: true,
-    role: role,
-    rname: roleName[role],
-    rUrl: roleUrl[role],
-    diefor: "",
-    right: true
+  life: true,
+  role: role,
+  rname: roleName[role],
+  rUrl: roleUrl[role],
+  diefor: "",
+  right: true,
+  poison: role == rWitc,
+  medicine: role == rWitc,
 }
 
 state initial {
@@ -475,7 +493,7 @@ state night {
 
 state night_seer {
 
-  theRole = 2
+  theRole = rSeer
 
   if !roles.includes(theRole) then going night_guard
 
@@ -505,7 +523,7 @@ state night_seer {
       } else drrr.print(me(T("beQuiet")(seer)))
     }
 
-    event [dm, msg] (user, cont: "^/skip$") => {
+    event [dm, msg] (user, cont: "^/skip\\s*$") => {
       if user in players then going night_guard
     }
 
@@ -514,7 +532,7 @@ state night_seer {
 
 state night_guard {
 
-  theRole = 5
+  theRole = rGuar
 
   if !roles.includes(theRole) then going night_wolf
 
@@ -542,19 +560,19 @@ state night_guard {
                 later 3500 going night_wolf
               } else if the.length then {
                 if protect == the then
-                  drrr.dm(user, T("dupProtect"))
+                  drrr.dm(guard, T("dupProtect"))
                 else if players[the].life then{
                   protect = the
                   later 3500 going night_wolf
-                } else drrr.dm(user, T("deadMan"))
-              } else drrr.dm(user, T("noSuchPeople"))
-            } else drrr.dm(user, T("oneCmd"))
-          } else drrr.dm(user, T("deadRole")(T("guard")))
-        } else drrr.dm(user, T("notRole")(T("guard")))
+                } else drrr.dm(guard, T("deadMan"))
+              } else drrr.dm(guard, T("noSuchPeople"))
+            } else drrr.dm(guard, T("oneCmd"))
+          } else drrr.dm(guard, T("deadRole")(T("guard")))
+        } else drrr.dm(guard, T("notRole")(T("guard")))
       } else drrr.print(me(T("beQuiet")(guard)))
     }
 
-    event [me, msg] (user, cont: "^/skip$") => {
+    event [me, msg] (user, cont: "^/skip\\s*$") => {
       if user in players then {
         protect = ""
         going night_wolf
@@ -596,19 +614,19 @@ state night_wolf {
             killed = 1
             later 3500 going night_witch
           }
-        } else drrr.dm(user, T("deadRole")(T("werewolf")))
-      } else drrr.dm(user, T("notRole")(T("werewolf")))
+        } else drrr.dm(wolf, T("deadRole")(T("werewolf")))
+      } else drrr.dm(wolf, T("notRole")(T("werewolf")))
     } else drrr.print(me(T("beQuiet")(wolf)))
   }
 
-  event [dm, msg] (user, cont: "^/skip$") => {
+  event [dm, msg] (user, cont: "^/skip\\s*$") => {
     if user in players then going night_witch
   }
 }
 
 state night_witch {
 
-  theRole = 3
+  theRole = rWitc
 
   if !roles.includes(theRole) then going night_end
 
@@ -616,67 +634,95 @@ state night_witch {
 
   if filter(players, (p, idx) => p.role == theRole && p.life).length then {
 
-    used = 0
+    wait_list = []
+    med_counts = 0
+    poi_targets = {}
 
     names.forEach((name, index) => {
-      if players[name].role == theRole then {
-        if poison then
-          later 3500 drrr.dm(name, T("victims")(victim.join(", ")))
+      poi_targets[name] = 0
+      if (players[name].role == theRole) && players[name].life then {
+        wait_list.push(name)
+        players[name].used = false;
+        if players[name].poison then
+          later (1500 * (index + 1)) drrr.dm(name, T("victims")(victim.join(", ")))
         else
-          later 3500 drrr.dm(name, T("action"))
+          later (1500 * (index + 1)) drrr.dm(name, T("action"))
       }
     })
+
+    check_going = (witch) => {
+      index = wait_list.indexOf(witch);
+      if index >= 0 then wait_list.splice(index, 1);
+      if !wait_list.length
+      then {
+        if med_counts < 3 && med_counts > 0 then victim = []
+        Object.keys(poi_targets).forEach(name => {
+          if poi_targets[name] % 2 then {
+            if !victim.includes(name)
+            then {
+              victim.push(name)
+              players[name].diefor = "poison"
+            }
+          }
+        })
+        later 3500 going night_end
+      }
+    }
 
     event dm (witch, cont) => {
       if witch in players then {
         if players[witch].role == theRole then {
           if players[witch].life then {
-            if !used then {
+            if !players[witch].used then {
               the = select(cont, names)
               if cont.startsWith("no") then {
-                used = 1
-                later 3500 going night_end
+                players[witch].used = true
+                check_going(witch)
               } else if cont.startsWith("ignore") then {
-                used = 1
-                later 3500 going night_end
+                players[witch].used = true
+                check_going(witch)
               } else if cont.includes("save") then {
-                if !medicine then {
+                if !players[witch].medicine then {
                   drrr.dm(witch, T("noMedicine"))
                 }
-                else if victim.length && victim[0] == witch then
+                else if ((!save_self || (save_self && day > 1))
+                  && victim.length && victim[0] == witch) then
                   drrr.dm(witch, T("can'tSaveSelf"))
                 else if victim.length && victim[0] == protect then {
-                  used = 1
-                  medicine = 0
-                  players[victim[0]].diefor = "poison"
+                  // medicine use on guard
+                  players[witch].used = true
+                  players[witch].medicine = false
+                  players[victim[0]].diefor = "medicine"
                 } else {
-                  victim = []
-                  used = 1
-                  medicine = 0
-                  later 3500 going night_end
+                  players[witch].used = true
+                  players[witch].medicine = false
+                  med_counts++
+                  check_going(witch)
                 }
               } else if cont.includes("poison") then {
                 if the.length then {
                   if players[the].life then{
-                    if poison then {
-                      if !victim.includes(the)
-                      then victim.push(the)
-                      players[the].diefor = "poison"
-                      used = 1
-                      poison = 0
-                      later 3500 going night_end
+                    if players[witch].poison then {
+                      poi_targets[the] = poi_targets[the] + 1
+                      players[witch].used = true
+                      players[witch].poison = false
+                      drrr.dm(witch, "ok, poison " + the)
+                      check_going(witch)
                     } else drrr.dm(witch, T("noPoison"))
-                  } else drrr.dm(user, T("deadMan"))
-                } else drrr.dm(user, T("noSuchPeople"))
-              } else drrr.dm(user, T("unkCmd"))
-            } else drrr.dm(user, T("oneCmd"))
-          } else drrr.dm(user, T("deadRole")(T("witch")))
-        } else drrr.dm(user, T("notRole")(T("witch")))
+                  } else drrr.dm(witch, T("deadMan"))
+                } else drrr.dm(witch, T("noSuchPeople"))
+              } else drrr.dm(witch, T("unkCmd"))
+            } else drrr.dm(witch, T("oneCmd"))
+          } else drrr.dm(witch, T("deadRole")(T("witch")))
+        } else drrr.dm(witch, T("notRole")(T("witch")))
       } else drrr.print(me(T("beQuiet")(witch)))
     }
 
-    event [me, msg] (user, cont: "^/skip$") => {
-      if user in players then going night_end
+    event [me, msg] (user, cont: "^/skip\\s*$") => {
+      if user in players then {
+        wait_list = []
+        check_going("")
+      }
     }
 
   } else later (getRandom(10, 30) * 1000) going night_end
@@ -773,8 +819,8 @@ state shooter_fire {
             if isShooter(players[the].role) then {
               // send asking info
               j = passJudge()
-              if isWolf(players[the].role) && j == 0 then going game_over
-              if !isWolf(players[the].role) && j == 1 then going game_over
+              if (isWolf(players[the].role)) && (j == 1) then going game_over
+              if (!isWolf(players[the].role)) && (j == 0) then going game_over
 
               new_dead.push(players[the].name)
               new_count++
@@ -789,17 +835,17 @@ state shooter_fire {
             if index >= 0 then expo.splice(index, 1);
             check();
 
-          } else drrr.dm(user, T("deadMan"))
-        } else drrr.dm(user, T("noSuchPeople"))
+          } else drrr.dm(hunter, T("deadMan"))
+        } else drrr.dm(hunter, T("noSuchPeople"))
       }
     }
   }
 
-  event [msg, me] (user, cont: "^/urge$") => {
+  event [msg, me] (user, cont: "^/urge\\s*$") => {
     drrr.print(me(T("urgeShoot")("@" + expo.join(", @"))))
   }
 
-  event [msg, me] (user, cont: "^/skip$") => {
+  event [msg, me] (user, cont: "^/skip\\s*$") => {
     if user in players then go_next()
   }
 }
@@ -830,35 +876,40 @@ state night_end {
         }
       }
 
-      announce(me(T("died")(victim.map((x)=>"@" + x).join(", "))))
+      if victim.length then{
+        announce(me(T("died")(victim.map((x)=>"@" + x).join(", "))))
+        later 2000 {
 
-      later 2000 {
+          exist_shooter = false
+          victim.forEach((name, index) => {
+            setTimeout(() => setAlive(name, false), index * 1500)
+            if isShooter(players[name].role) && players[name].diefor != "poison"
+            then exist_shooter = true
+          })
 
-        exist_shooter = false
-        victim.forEach((name, index) => {
-          setTimeout(() => setAlive(name, false), index * 1500)
-          if isShooter(players[name].role) && players[name].diefor != "poison"
-          then exist_shooter = true
-        })
+          if exist_shooter then {
+            dead = victim
+            visit shooter_ask
+          }
 
-        if exist_shooter then {
-          dead = victim
-          visit shooter_ask
-        }
+          later 5000 {
+            drrr.print(me(T("rip30s")))
+            later 30000 {
+              victim.forEach((name) => {
+                players[name].life = false
+                players[name].right = false
+              })
 
-        later 5000 {
-          drrr.print(me(T("rip30s")))
-          later 30000 {
-            victim.forEach((name) => {
-              players[name].life = false
-              players[name].right = false
-            })
-
-            if expo.length
-            then visit shooter_fire
-            else go_next()
+              if expo.length
+              then visit shooter_fire
+              else go_next()
+            }
           }
         }
+      }
+      else {
+        announce(me(T("morningSafe")))
+        later 3500 go_next()
       }
     } else {
       announce(me(T("morningSafe")))
@@ -897,7 +948,7 @@ state day_discussion {
       }
     }
     else if (names[index] == u && cont.includes("over"))
-      || ((names.includes(u) || u == user.name) && cont.startsWith("/skip")) then {
+      || ((names.includes(u) || u == drrr.user.name) && cont.startsWith("/skip")) then {
       index++ // += bug?
       while (index < names.length) && (!players[names[index]].life) index++;
       if index >= names.length
@@ -917,11 +968,11 @@ state day_vote {
 
 
   later 1500 drrr.print(T("voteNote")(
-    survivor.filter(u => players[u].vote).map((u) => "@" + u.name).join("\n")))
+    survivor.filter(u => u.right).map((u) => "@" + u.name).join("\n")))
 
   lock = false
 
-  event [msg, me, dm] (user, cont: "^/vote\\s+\\S+|^/execute") => {
+  event [msg, me, dm] (user, cont: "^/vote\\s+\\S+|^/execute", url, tc, req) => {
     cont = cont.replace("/vote", "").trim()
     if user in players && !lock then {
       if players[user].right then {
@@ -935,9 +986,13 @@ state day_vote {
         else {
           the = select(cont, names)
           if the then {
-            if players[the].vote then {
+            if players[the].right then {
               vote[user] = the
-              drrr.print(T("checkVote")(the))
+
+              if req.type == "dm"
+              then drrr.dm(user, T("checkVote")(the))
+              else drrr.print(T("checkVote")(the))
+
               if Object.keys(vote).length == filter(players, p => p.right).length
               then {
                 lock = true
@@ -947,7 +1002,11 @@ state day_vote {
           }
           else if cont.startsWith("no") then {
             vote[user] = "no"
-            drrr.print(T("abstain"))
+
+            if req.type == "dm"
+            then drrr.dm(user, T("abstain"))
+            else drrr.print(T("abstain"))
+
             if Object.keys(vote).length == filter(players, p => p.right).length
             then {
               lock = true
@@ -958,12 +1017,12 @@ state day_vote {
       } else drrr.print(T("noRight"))
     } else drrr.print(me(T("beQuiet")(user)))
   }
-  event [msg, me, dm] (user, cont: "^/vote$", url, tc, req) => {
+  event [msg, me, dm] (user, cont: "^/vote\\s*$", url, tc, req) => {
     if req.type == "dm"
     then drrr.dm(user, me(T("curVote")(Object.keys(vote).join(", "))))
     else drrr.print(me(T("curVote")(Object.keys(vote).join(", "))))
   }
-  event [msg, me] (user, cont: "^/urge$") => {
+  event [msg, me] (user, cont: "^/urge\\s*$") => {
     drrr.print(me(T("urgeVote")(survivor.filter(u => !(u.name in vote) && u.right).map((u) => "@" + u.name).join(", "))))
   }
 }
@@ -1100,7 +1159,7 @@ werewolf = (lang) => {
     initRoleName()
   }
 
-  event [msg, me, dm] (user, cont: "^/r$") => {
+  event [msg, me, dm] (user, cont: "^/r\\s*$") => {
     if user in players then {
       wolves = filter(players, (p, index) => isWolf(p.role)).map(p => p.name).join(", ")
       if !isWolf(players[user].role) then drrr.dm(user, T("UrRole")(players[user].rname), players[user].rUrl)
@@ -1108,7 +1167,7 @@ werewolf = (lang) => {
     } else drrr.dm(user, T("notPlayer"))
   }
 
-  event [msg, me, dm] (user, cont: "^/w$") => {
+  event [msg, me, dm] (user, cont: "^/w\\s*$") => {
     if Object.keys(players).length
     then drrr.print(T("players")(map(players, (p, index) => String(index + 1) + ". " + p.name + " " + (if p.life then T("alive") else T("dead"))).join("\n")))
     else if names.length then
@@ -1116,26 +1175,36 @@ werewolf = (lang) => {
     else drrr.print(me(T("noPlayerBeg")))
   }
 
-  event [msg, me, dm] (user, cont: "^/s$") => {
+  event [msg, me, dm] (user, cont: "^/s\\s*$") => {
     drrr.print(announcement)
   }
 
-  event [msg, me, dm] (user, cont: "^/help$") => {
+  event [msg, me, dm] (user, cont: "^/help\\s*$") => {
     drrr.print(T("manual"))
   }
 
-  event [msg, me] (user, cont: "^/game$") => going prepare
+  event [msg, me] (user, cont: "^/game\\s*$") => going prepare
 
-  event [msg, me] (user, cont: "^/next$") => later 1500 drrr.print("/me/skip")
+  event [msg, me] (user, cont: "^/next\\s*$") => later 1500 drrr.print("/me/skip")
 
-  event join (user) => setPlayer(user, false)
+  event join (user) => setPlayer(user, user == drrr.user.name)
+
+  event [msg, me] (user, cont: "^/alive") => {
+    if !names.length then drrr.print("/me start game first")
+    else setAlive(select(cont, names), !cont.includes("false"))
+  }
+
+  event [msg, me] (user, cont: "^/player") => {
+    if !names.length then drrr.print("/me start game first")
+    else setPlayer(select(cont, names), !cont.includes("false"))
+  }
 
   going prepare
 }
 
 console.log("need call werewolf(lang) to start it,\n\"zh\" and \"en\" are available now")
 
-room = ""
+room = "AX72B5TYgL"
 
 drrr = new Bot(__this__, "法官羅伯特", "kanra-2x")
 

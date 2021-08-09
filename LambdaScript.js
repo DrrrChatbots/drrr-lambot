@@ -23373,12 +23373,12 @@ var PS = {};
       array;
   }
 
-  exports.meetEvent = events => state => types => args => next => () => {
-    events[state] = events[state] || [];
+  exports.meetEvent = machine => state => types => args => next => () => {
+    machine.events[state] = machine.events[state] || [];
 
     [user_regex, cont_regex] = padArray(args, 2, "");
 
-    events[state].push([
+    machine.events[state].push([
       types, user_regex, cont_regex, next
     ])
     //console.log(`Event ${types} ${JSON.stringify(args)}`);
@@ -23827,6 +23827,16 @@ var PS = {};
       };
       return new BotScript.Abs([  ], v);
   };
+  var getMainMachine = function (machine) {
+      var v = BotScriptEnv.assocVar("__main__")(machine.env);
+      if (v instanceof Data_Maybe.Just) {
+          return v.value0;
+      };
+      if (v instanceof Data_Maybe.Nothing) {
+          return Undefined["undefined"];
+      };
+      throw new Error("Failed pattern match at BotScriptVM (line 99, column 3 - line 101, column 28): " + [ v.constructor.name ]);
+  };
   var getEnv = function (machine) {
       return machine.env;
   };
@@ -23939,8 +23949,8 @@ var PS = {};
           if (v1.value0 instanceof BotScript.Bin && v1.value0.value0 === "||") {
               return function __do() {
                   var lv$prime = evalExpr(v)(v1.value0.value1)();
-                  var $66 = $foreign.toBoolean(lv$prime);
-                  if ($66) {
+                  var $69 = $foreign.toBoolean(lv$prime);
+                  if ($69) {
                       return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(lv$prime)(exprs$prime));
                   };
                   var rv$prime = evalExpr(v)(v1.value0.value2)();
@@ -23950,8 +23960,8 @@ var PS = {};
           if (v1.value0 instanceof BotScript.Bin && v1.value0.value0 === "&&") {
               return function __do() {
                   var lv$prime = evalExpr(v)(v1.value0.value1)();
-                  var $70 = $foreign.toBoolean(lv$prime);
-                  if ($70) {
+                  var $73 = $foreign.toBoolean(lv$prime);
+                  if ($73) {
                       var rv$prime = evalExpr(v)(v1.value0.value2)();
                       return Control_Monad_Rec_Class.Loop.create(setValExprs(v)(rv$prime)(exprs$prime));
                   };
@@ -24018,7 +24028,7 @@ var PS = {};
                   var v3 = BotScriptEnv.save(env)(v1.value0.value0)(none$prime);
                   return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(none$prime)(exprs$prime)));
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 305, column 13 - line 310, column 73): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 310, column 13 - line 315, column 73): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Obj) {
               var v2 = Data_Array.unzip(v1.value0.value0);
@@ -24052,7 +24062,7 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 326, column 13 - line 342, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 331, column 13 - line 347, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Visit) {
               var v2 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v3) {
@@ -24067,7 +24077,7 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 345, column 13 - line 358, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 350, column 13 - line 363, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Reset) {
               return Control_Applicative.pure(Effect.applicativeEffect)(new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime)));
@@ -24087,7 +24097,7 @@ var PS = {};
               var grds = Data_Functor.map(Data_Functor.functorArray)(Data_Tuple.snd)(v2.value0);
               return function __do() {
                   var guards = Data_Traversable.traverse(Data_Traversable.traversableArray)(Effect.applicativeEffect)(evalExpr(v))(grds)();
-                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.meetEvent(v.events)(v.cur)(v1.value0.value0)(guards)(make$primeevent$primeaction(syms)(v2.value1)(v)))();
+                  Effect_Class.liftEffect(Effect_Class.monadEffectEffect)($foreign.meetEvent(getMainMachine(v))(v.cur)(v1.value0.value0)(guards)(make$primeevent$primeaction(syms)(v2.value1)(v)))();
                   return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
               };
           };
@@ -24155,7 +24165,7 @@ var PS = {};
               return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
           };
       };
-      throw new Error("Failed pattern match at BotScriptVM (line 166, column 1 - line 166, column 63): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptVM (line 171, column 1 - line 171, column 63): " + [ v.constructor.name ]);
   };
   var make$primeevent$primeaction = function (syms) {
       return function (expr) {
@@ -24226,6 +24236,7 @@ var PS = {};
   };
   exports["rawMachine"] = rawMachine;
   exports["wrapMachine"] = wrapMachine;
+  exports["getMainMachine"] = getMainMachine;
   exports["runVM"] = runVM;
   exports["runStep"] = runStep;
   exports["none"] = $foreign.none;
@@ -24242,7 +24253,6 @@ var PS = {};
   var BotScriptVM = $PS["BotScriptVM"];
   var Data_Either = $PS["Data.Either"];
   var Data_List_Types = $PS["Data.List.Types"];
-  var Data_Maybe = $PS["Data.Maybe"];
   var Data_Show = $PS["Data.Show"];
   var Effect_Console = $PS["Effect.Console"];
   var Text_Parsing_Parser = $PS["Text.Parsing.Parser"];
@@ -24263,19 +24273,10 @@ var PS = {};
                   return machine;
               };
           };
-          throw new Error("Failed pattern match at Main (line 43, column 5 - line 48, column 27): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at Main (line 40, column 5 - line 45, column 27): " + [ v.constructor.name ]);
       };
   };
-  var getMain = function (machine) {
-      var v = BotScriptEnv.assocVar("__main__")(machine.env);
-      if (v instanceof Data_Maybe.Just) {
-          return v.value0;
-      };
-      if (v instanceof Data_Maybe.Nothing) {
-          return Undefined["undefined"];
-      };
-      throw new Error("Failed pattern match at Main (line 22, column 3 - line 24, column 28): " + [ v.constructor.name ]);
-  };
+  var getMain = BotScriptVM.getMainMachine;
   var execute = function (ctx) {
       var v = BotScriptParser.parse(BotScriptParser.parseScript)(ctx);
       if (v instanceof Data_Either.Right) {
@@ -24295,7 +24296,7 @@ var PS = {};
               };
           };
       };
-      throw new Error("Failed pattern match at Main (line 27, column 15 - line 39, column 16): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 24, column 15 - line 36, column 16): " + [ v.constructor.name ]);
   };
   var execute$prime = function (ctx) {
       return function __do() {
@@ -24311,7 +24312,7 @@ var PS = {};
       if (v instanceof Data_Either.Left) {
           return Effect_Console.log("error: " + Data_Show.show(Text_Parsing_Parser.showParseError)(v.value0));
       };
-      throw new Error("Failed pattern match at Main (line 51, column 15 - line 53, column 44): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at Main (line 48, column 15 - line 50, column 44): " + [ v.constructor.name ]);
   };
   exports["newMachine"] = newMachine;
   exports["getMain"] = getMain;
