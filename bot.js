@@ -425,24 +425,45 @@ class Bot {
     this.room_api(cmd, callback);
   }
 
-  sendTo(uid, msg, url, callback){
-    let cmd = {'message': msg, 'to': uid };
+  sendTo(name, msg, url, callback){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    let cmd = {'message': msg, 'to': u.id };
     if(url) cmd.url = url;
     this.room_api(cmd, callback);
   }
 
   music(name, url, callback){ this.room_api({'music': 'music', 'name': name, 'url': url}, callback); }
 
-  handOver(uid, callback){ this.room_api({'new_host': uid}, callback); }
+  handOver(name, callback){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'new_host': u.id}, callback);
+  }
 
-  kick(uid, callback){ this.room_api({'kick': uid}, callback); }
+  kick(name, callback){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'kick': u.id}, callback);
+  }
 
-  ban(uid, callback){ this.room_api({'ban': uid}, callback); }
+  ban(name, callback){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'ban': u.id}, callback);
+  }
 
-  report(uid, callback){ this.room_api({'report_and_ban_user': uid}, callback); }
+  report(name, callback){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'report_and_ban_user': u.id}, callback);
+  }
 
-  unban(uid, callback){ this.room_api({'unban': uid}, callback); }
-
+  unban(name, callback){
+    let users = this.room.users || []
+    let u = users.find(x => x.name === name)
+    this.room_api({'unban': u.id}, callback);
+  }
 
   // for werewolf room on drrr.com
   player(name, player = false){
