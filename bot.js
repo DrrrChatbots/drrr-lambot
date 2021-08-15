@@ -495,11 +495,7 @@ class Bot {
   print = this.send.bind(this);
 
   /* alias for sendTo */
-  dm = function(name, ...args){
-    let users = this.room.users || []
-    let u = users.find(x => x.name === name)
-    this.sendTo((u && u.id) || "", ...args);
-  }
+  dm = this.sendTo.bind(this);
 
   /* alias for handOver */
   chown = this.handOver.bind(this);
