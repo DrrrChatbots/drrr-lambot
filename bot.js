@@ -58,9 +58,11 @@ function writeJson(fn, obj){
 function talk2event(talk, bot){
   let evt = {
     type: "",
-    user: (talk.from && talk.from.name) || "",
-    trip: (talk.from && talk.from.tripcode) || "",
-    from: (talk.from || false),
+    user: (talk.from && talk.from.name)
+          || (talk.user && talk.user.name) ||  "",
+    trip: (talk.from && talk.from.tripcode)
+          || (talk.user && talk.user.tripcode) || "",
+    from: (talk.from || talk.user || false),
     text: talk.content || talk.message || "",
     url: talk.url || ""
   };
