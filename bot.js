@@ -93,6 +93,8 @@ class Bot {
     this.lang = lang || 'en-US';
     this.agent = agent || 'Bot';
     this.config = config || "config.json";
+    this.exec_ctrl = false;
+    this.ctrl_queue = [];
 
     if(machine) {
       console.log("start listening...")
@@ -238,6 +240,10 @@ class Bot {
       let json;
       try{ json = JSON.parse(res.text); }
       catch(e){ json = res.text; }
+      if(json.message == 'Not Logined'){
+        console.log(json.message)
+        return callback(false)
+      }
       this.profile = json.profile;
       this.name = json.profile.name;
       this.avatar = json.profile.icon;
@@ -420,7 +426,22 @@ class Bot {
     handle();
   }
 
-  room_api(cmd, callback){
+  do_ctrl(){
+    let self = this;
+    function _do_ctrl(){
+      if(self.ctrl_queue.length){
+        self.ctrl_queue.shift()(); // may use promise instead
+        setTimeout(()=>{ // wait previous task complete
+          if(self.ctrl_queue.length)
+            _do_ctrl();
+          else self.exec_ctrl = false;
+        }, 1500);
+      }
+    }
+    if(!self.exec_ctrl){ self.exec_ctrl = true; _do_ctrl(); }
+  }
+
+  _room_api(cmd, callback){
     this.post(endpoint + "/room/?ajax=1&api=json", cmd, res => {
       if(!callback) return;
       if(res.status == 200){
@@ -432,6 +453,16 @@ class Bot {
         callback && callback(false);
       }
     });
+  }
+
+  room_api(cmd, callback){
+    let self = this;
+    this.ctrl_queue.push(
+      ((_c, _cb) =>
+        () => self._room_api(_c, _cb)
+      )(cmd, callback)
+    );
+    this.do_ctrl();
   }
 
   leave(callback){ this.room_api({'leave': 'leave'}, callback); }
