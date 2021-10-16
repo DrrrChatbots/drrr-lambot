@@ -3,6 +3,8 @@ const https = require('https');
 const querystring = require('querystring');
 const LS = require('./LambdaScript')
 
+https.globalAgent.keepAlive = true;
+
 const endpoint = "https://drrr.com";
 
 function fetch(url, [opts, body], callback){
