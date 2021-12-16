@@ -23352,8 +23352,8 @@ var PS = {};
   //}
 
   //exports.clearAllTimer = () => {
-  //  for(s in exports.timers){
-  //    for(id of exports.timers[s]){
+  //  for(let s in exports.timers){
+  //    for(let id of exports.timers[s]){
   //      clearInterval(id);
   //    }
   //  }
@@ -23390,7 +23390,7 @@ var PS = {};
 
   exports.dropTimer = timers => state => () => {
     if(timers[state])
-      for(id of timers[state])
+      for(let id of timers[state])
         clearInterval(id);
     timers[state] = [];
   }
@@ -23468,7 +23468,7 @@ var PS = {};
     }
   }
 
-  for(key in botlang_builtins){
+  for(let key in botlang_builtins){
     globalThis[key] = botlang_builtins[key];
   }
 })(PS["BotScriptVM"] = PS["BotScriptVM"] || {});
@@ -24322,4 +24322,4 @@ var PS = {};
   exports["execute'"] = execute$prime;
   exports["main"] = main;
 })(PS);
-PS["Main"].main();module.exports = PS;
+PS["Main"].main();
