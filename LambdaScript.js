@@ -21961,7 +21961,7 @@ var PS = {};
           if (Data_Boolean.otherwise) {
               return Data_Array.sort(Data_Ord.ordString)(Data_Functor.map(Data_Functor.functorArray)(Data_String_Common.toLower)(v.reservedNames));
           };
-          throw new Error("Failed pattern match at CustomToken (line 749, column 1 - line 749, column 82): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at CustomToken (line 768, column 1 - line 768, column 82): " + [ v.constructor.name ]);
       };
   };
   var space = function (dictMonad) {
@@ -22009,9 +22009,9 @@ var PS = {};
                       $tco_done = true;
                       return false;
                   };
-                  throw new Error("Failed pattern match at CustomToken (line 744, column 39 - line 747, column 53): " + [ v1.constructor.name ]);
+                  throw new Error("Failed pattern match at CustomToken (line 763, column 39 - line 766, column 53): " + [ v1.constructor.name ]);
               };
-              throw new Error("Failed pattern match at CustomToken (line 742, column 5 - line 747, column 53): " + [ v.constructor.name ]);
+              throw new Error("Failed pattern match at CustomToken (line 761, column 5 - line 766, column 53): " + [ v.constructor.name ]);
           };
           while (!$tco_done) {
               $tco_result = $tco_loop($tco_var_names, $copy_name);
@@ -22029,7 +22029,7 @@ var PS = {};
                   if (Data_Boolean.otherwise) {
                       return Data_String_Common.toLower(name);
                   };
-                  throw new Error("Failed pattern match at CustomToken (line 737, column 5 - line 738, column 57): " + [  ]);
+                  throw new Error("Failed pattern match at CustomToken (line 756, column 5 - line 757, column 57): " + [  ]);
               })();
               return isReserved(theReservedNames(dictMonad)(v))(caseName);
           };
@@ -22078,7 +22078,7 @@ var PS = {};
           if (Data_Boolean.otherwise) {
               return Text_Parsing_Parser_Combinators.skipMany(dictMonad)(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(simpleSpace(dictMonad))(oneLineComment(dictMonad)(v)))(multiLineComment(dictMonad)(v)))(""));
           };
-          throw new Error("Failed pattern match at CustomToken (line 758, column 1 - line 758, column 86): " + [ v.constructor.name ]);
+          throw new Error("Failed pattern match at CustomToken (line 777, column 1 - line 777, column 86): " + [ v.constructor.name ]);
       };
   };
   var hexDigit = function (dictMonad) {
@@ -22115,7 +22115,7 @@ var PS = {};
                                   return (base * v1.value0 | 0) + v3 | 0;
                               })(Data_Char_Unicode.digitToInt(v2));
                           };
-                          throw new Error("Failed pattern match at CustomToken (line 627, column 9 - line 627, column 49): " + [ v1.constructor.name, v2.constructor.name ]);
+                          throw new Error("Failed pattern match at CustomToken (line 646, column 9 - line 646, column 49): " + [ v1.constructor.name, v2.constructor.name ]);
                       };
                   };
                   return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Data_Array.some(Text_Parsing_Parser.alternativeParserT(dictMonad))(Text_Parsing_Parser.lazyParserT)(baseDigit))(function (digits) {
@@ -22159,7 +22159,7 @@ var PS = {};
                       if (v1 instanceof Data_Maybe.Just) {
                           return new Data_List_Types.Cons(v1.value0, chars);
                       };
-                      throw new Error("Failed pattern match at CustomToken (line 412, column 9 - line 412, column 55): " + [ v1.constructor.name, chars.constructor.name ]);
+                      throw new Error("Failed pattern match at CustomToken (line 414, column 9 - line 414, column 55): " + [ v1.constructor.name, chars.constructor.name ]);
                   };
               };
               var go = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Data_List.many(Text_Parsing_Parser.alternativeParserT(dictMonad))(Text_Parsing_Parser.lazyParserT)(keyChar))(function (maybeChars) {
@@ -22172,8 +22172,8 @@ var PS = {};
           };
           var operator = (function () {
               var go = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(oper)(function (name) {
-                  var $87 = isReservedOp(name);
-                  if ($87) {
+                  var $88 = isReservedOp(name);
+                  if ($88) {
                       return Text_Parsing_Parser.fail(dictMonad)("reserved operator " + name);
                   };
                   return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(name);
@@ -22190,8 +22190,8 @@ var PS = {};
           })();
           var identifier = (function () {
               var go = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(ident)(function (name) {
-                  var $88 = isReservedName(dictMonad)(v)(name);
-                  if ($88) {
+                  var $89 = isReservedName(dictMonad)(v)(name);
+                  if ($89) {
                       return Text_Parsing_Parser.fail(dictMonad)("reserved word " + Data_Show.show(Data_Show.showString)(name));
                   };
                   return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(name);
@@ -22210,7 +22210,7 @@ var PS = {};
                               return Control_Applicative.pure(Data_Maybe.applicativeMaybe)((v2.value0 + Data_Int.toNumber(int$prime)) / 10.0);
                           });
                       };
-                      throw new Error("Failed pattern match at CustomToken (line 577, column 9 - line 577, column 51): " + [ v1.constructor.name, v2.constructor.name ]);
+                      throw new Error("Failed pattern match at CustomToken (line 596, column 9 - line 596, column 51): " + [ v1.constructor.name, v2.constructor.name ]);
                   };
               };
               return Text_Parsing_Parser_Combinators.asErrorMessage(dictMonad)("fraction")(Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("."))(function () {
@@ -22232,7 +22232,7 @@ var PS = {};
                   if (Data_Boolean.otherwise) {
                       return $$Math.pow(10.0)(Data_Int.toNumber(e));
                   };
-                  throw new Error("Failed pattern match at CustomToken (line 590, column 9 - line 590, column 31): " + [ e.constructor.name ]);
+                  throw new Error("Failed pattern match at CustomToken (line 609, column 9 - line 609, column 31): " + [ e.constructor.name ]);
               };
               return Text_Parsing_Parser_Combinators.asErrorMessage(dictMonad)("exponent")(Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_String.oneOf(Text_Parsing_Parser_String.stringLikeString)(dictMonad)([ "e", "E" ]))(function () {
                   return Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(sign(Data_Ring.ringInt))(function (f) {
@@ -22282,8 +22282,8 @@ var PS = {};
           };
           var colon = symbol(":");
           var charNum = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(decimal)(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("o"))(number(8)(octDigit(dictMonad)))))(Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("x"))(number(16)(hexDigit(dictMonad)))))(function (code) {
-              var $93 = code > 1114111;
-              if ($93) {
+              var $94 = code > 1114111;
+              if ($94) {
                   return Text_Parsing_Parser.fail(dictMonad)("invalid escape sequence");
               };
               var v1 = Data_Char.fromCharCode(code);
@@ -22293,7 +22293,7 @@ var PS = {};
               if (v1 instanceof Data_Maybe.Nothing) {
                   return Text_Parsing_Parser.fail(dictMonad)("invalid character code (should not happen)");
               };
-              throw new Error("Failed pattern match at CustomToken (line 475, column 17 - line 477, column 81): " + [ v1.constructor.name ]);
+              throw new Error("Failed pattern match at CustomToken (line 494, column 17 - line 496, column 81): " + [ v1.constructor.name ]);
           });
           var charLetter = Text_Parsing_Parser_String.satisfy(Text_Parsing_Parser_String.stringLikeString)(dictMonad)(function (c) {
               return c !== "'" && (c !== "\\" && c > "\x1a");
@@ -22313,7 +22313,7 @@ var PS = {};
                   if (v1 instanceof Data_Maybe.Nothing) {
                       return Text_Parsing_Parser.fail(dictMonad)("invalid character code (should not happen)");
                   };
-                  throw new Error("Failed pattern match at CustomToken (line 464, column 9 - line 466, column 73): " + [ v1.constructor.name ]);
+                  throw new Error("Failed pattern match at CustomToken (line 483, column 9 - line 485, column 73): " + [ v1.constructor.name ]);
               });
           });
           var caseString = function (name) {
@@ -22329,7 +22329,7 @@ var PS = {};
                       if (Data_Boolean.otherwise) {
                           return Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)(c);
                       };
-                      throw new Error("Failed pattern match at CustomToken (line 685, column 9 - line 685, column 50): " + [ c.constructor.name ]);
+                      throw new Error("Failed pattern match at CustomToken (line 704, column 9 - line 704, column 50): " + [ c.constructor.name ]);
                   };
                   var walk = function (name$prime) {
                       var v1 = Data_String_CodeUnits.uncons(name$prime);
@@ -22339,11 +22339,11 @@ var PS = {};
                       if (v1 instanceof Data_Maybe.Just) {
                           return Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(caseChar(v1.value0.head))(msg))(walk(v1.value0.tail));
                       };
-                      throw new Error("Failed pattern match at CustomToken (line 681, column 22 - line 683, column 86): " + [ v1.constructor.name ]);
+                      throw new Error("Failed pattern match at CustomToken (line 700, column 22 - line 702, column 86): " + [ v1.constructor.name ]);
                   };
                   return Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad.Bind1()).Apply0()).Functor0()))(walk(name))(name);
               };
-              throw new Error("Failed pattern match at CustomToken (line 676, column 5 - line 676, column 52): " + [ name.constructor.name ]);
+              throw new Error("Failed pattern match at CustomToken (line 695, column 5 - line 695, column 52): " + [ name.constructor.name ]);
           };
           var reserved = function (name) {
               var go = Control_Apply.applySecond(Text_Parsing_Parser.applyParserT(dictMonad))(caseString(name))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Text_Parsing_Parser_Combinators.notFollowedBy(dictMonad)(v.identLetter))("end of " + name));
@@ -22373,6 +22373,24 @@ var PS = {};
               var go = Text_Parsing_Parser_Combinators.between(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("'"))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("'"))("end of character"))(characterChar);
               return Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(lexeme(go))("character");
           })();
+          var singleQuotestringChar = Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad.Bind1()).Apply0()).Functor0()))(Data_Maybe.Just.create)(characterChar))("string character");
+          var singleQuoteStringLiteral = (function () {
+              var folder = function (v1) {
+                  return function (chars) {
+                      if (v1 instanceof Data_Maybe.Nothing) {
+                          return chars;
+                      };
+                      if (v1 instanceof Data_Maybe.Just) {
+                          return new Data_List_Types.Cons(v1.value0, chars);
+                      };
+                      throw new Error("Failed pattern match at CustomToken (line 439, column 9 - line 439, column 55): " + [ v1.constructor.name, chars.constructor.name ]);
+                  };
+              };
+              var go = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.between(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("'"))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("'"))("end of 'string'"))(Data_List.many(Text_Parsing_Parser.alternativeParserT(dictMonad))(Text_Parsing_Parser.lazyParserT)(singleQuotestringChar)))(function (maybeChars) {
+                  return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(Data_String_CodeUnits.fromCharArray(Data_List.toUnfoldable(Data_Unfoldable.unfoldableArray)(Data_Foldable.foldr(Data_List_Types.foldableList)(folder)(Data_List_Types.Nil.value)(maybeChars))));
+              });
+              return Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(lexeme(go))("character");
+          })();
           var stringEscape = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("\\"))(function () {
               return Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Control_Alt.alt(Text_Parsing_Parser.altParserT(dictMonad))(Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad.Bind1()).Apply0()).Functor0()))(escapeGap)(Data_Maybe.Nothing.value))(Data_Functor.voidLeft(Text_Parsing_Parser.functorParserT(((dictMonad.Bind1()).Apply0()).Functor0()))(escapeEmpty)(Data_Maybe.Nothing.value)))(Data_Functor.map(Text_Parsing_Parser.functorParserT(((dictMonad.Bind1()).Apply0()).Functor0()))(Data_Maybe.Just.create)(escapeCode));
           });
@@ -22386,10 +22404,10 @@ var PS = {};
                       if (v1 instanceof Data_Maybe.Just) {
                           return new Data_List_Types.Cons(v1.value0, chars);
                       };
-                      throw new Error("Failed pattern match at CustomToken (line 432, column 9 - line 432, column 55): " + [ v1.constructor.name, chars.constructor.name ]);
+                      throw new Error("Failed pattern match at CustomToken (line 451, column 9 - line 451, column 55): " + [ v1.constructor.name, chars.constructor.name ]);
                   };
               };
-              var go = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.between(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("\""))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("\""))("end of string"))(Data_List.many(Text_Parsing_Parser.alternativeParserT(dictMonad))(Text_Parsing_Parser.lazyParserT)(stringChar)))(function (maybeChars) {
+              var go = Control_Bind.bind(Text_Parsing_Parser.bindParserT(dictMonad))(Text_Parsing_Parser_Combinators.between(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("\""))(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(Text_Parsing_Parser_String["char"](Text_Parsing_Parser_String.stringLikeString)(dictMonad)("\""))("end of \"string\""))(Data_List.many(Text_Parsing_Parser.alternativeParserT(dictMonad))(Text_Parsing_Parser.lazyParserT)(stringChar)))(function (maybeChars) {
                   return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(dictMonad))(Data_String_CodeUnits.fromCharArray(Data_List.toUnfoldable(Data_Unfoldable.unfoldableArray)(Data_Foldable.foldr(Data_List_Types.foldableList)(folder)(Data_List_Types.Nil.value)(maybeChars))));
               });
               return lexeme(Text_Parsing_Parser_Combinators.withErrorMessage(dictMonad)(go)("literal string"));
@@ -22403,6 +22421,7 @@ var PS = {};
               operator: operator,
               reservedOp: reservedOp,
               charLiteral: charLiteral,
+              singleQuoteStringLiteral: singleQuoteStringLiteral,
               stringLiteral: stringLiteral,
               keyLiteral: keyLiteral,
               natural: natural,
@@ -22842,7 +22861,7 @@ var PS = {};
   var parseIdentifier = tokParser.identifier;
   var parseKeyLiteral = tokParser.keyLiteral;
   var parseNumber = Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Combinators["try"](Data_Identity.monadIdentity)(tokParser["float"]))(Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(Data_Int.toNumber)(tokParser.integer));
-  var parseStringLiteral = tokParser.stringLiteral;
+  var parseStringLiteral = Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(tokParser.stringLiteral)(tokParser.singleQuoteStringLiteral);
   var reserved = function (xs) {
       return tokParser.reserved(xs);
   };
@@ -22863,7 +22882,7 @@ var PS = {};
                           if (maybe instanceof Data_Maybe.Nothing) {
                               return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new BotScript.Ifels(prd, thn, new BotScript.Group(Data_List_Types.Nil.value)));
                           };
-                          throw new Error("Failed pattern match at BotScriptParser (line 333, column 3 - line 337, column 51): " + [ maybe.constructor.name ]);
+                          throw new Error("Failed pattern match at BotScriptParser (line 338, column 3 - line 342, column 51): " + [ maybe.constructor.name ]);
                       });
                   });
               });
@@ -22905,15 +22924,6 @@ var PS = {};
   var inc$primes = Data_Functor.voidRight(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(BotScript.Una.create("_++"))(reservedOp("++"));
   var neg = Data_Functor.voidRight(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(BotScript.Una.create("-"))(reservedOp("-"));
   var not = Data_Functor.voidRight(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(BotScript.Una.create("!"))(reservedOp("!"));
-  var parseApp = function (exprP) {
-      return Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(parens(Text_Parsing_Parser_Combinators.sepEndBy(Data_Identity.monadIdentity)(exprP)(reservedOp(","))))(function (args) {
-          return Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Combinators.optional(Data_Identity.monadIdentity)(reservedOp(";")))(function () {
-              return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(function (expr) {
-                  return new BotScript.App(expr, Data_Array.fromFoldable(Data_List_Types.foldableList)(args));
-              });
-          });
-      });
-  };
   var parseObjKey = Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(parseStringLiteral)(parseKeyLiteral))(function (key) {
       return Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(reservedOp(":"))(function () {
           return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(key);
@@ -22953,6 +22963,23 @@ var PS = {};
   var symbol = function (xs) {
       return tokParser.symbol(xs);
   };
+  var parseApp = function (exprP) {
+      return Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(parens(Text_Parsing_Parser_Combinators.sepEndBy(Data_Identity.monadIdentity)(exprP)(reservedOp(","))))(function (args) {
+          return Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Combinators.optionMaybe(Data_Identity.monadIdentity)(Text_Parsing_Parser_Combinators.lookAhead(Data_Identity.monadIdentity)(symbol("=>"))))(function (arrow) {
+              if (arrow instanceof Data_Maybe.Just) {
+                  return Text_Parsing_Parser.fail(Data_Identity.monadIdentity)("call cannot be followed by =>");
+              };
+              if (arrow instanceof Data_Maybe.Nothing) {
+                  return Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Combinators.optional(Data_Identity.monadIdentity)(reservedOp(";")))(function () {
+                      return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(function (expr) {
+                          return new BotScript.App(expr, Data_Array.fromFoldable(Data_List_Types.foldableList)(args));
+                      });
+                  });
+              };
+              throw new Error("Failed pattern match at BotScriptParser (line 236, column 3 - line 241, column 8): " + [ arrow.constructor.name ]);
+          });
+      });
+  };
   var parseArgs = Control_Lazy.fix(Text_Parsing_Parser.lazyParserT)(function (self) {
       return Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser_Combinators["try"](Data_Identity.monadIdentity)(reservedOp("(")))(function () {
           return Control_Bind.discard(Control_Bind.discardUnit)(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(reservedOp(")"))(function () {
@@ -22974,28 +23001,28 @@ var PS = {};
   var parseArray = function (exprP) {
       return Control_Lazy.fix(Text_Parsing_Parser.lazyParserT)(function (self) {
           return brackets(Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))((function () {
-              var $80 = Data_Array.fromFoldable(Data_List_Types.foldableList);
-              return function ($81) {
-                  return BotScript.Arr.create($80($81));
+              var $82 = Data_Array.fromFoldable(Data_List_Types.foldableList);
+              return function ($83) {
+                  return BotScript.Arr.create($82($83));
               };
           })())(Text_Parsing_Parser_Combinators.sepEndBy(Data_Identity.monadIdentity)(exprP)(reservedOp(","))));
       });
   };
   var parseTerm = function (exprP) {
       return Text_Parsing_Parser_Combinators.choice(Data_Foldable.foldableArray)(Data_Identity.monadIdentity)([ parens(exprP), Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))((function () {
-          var $82 = BotScript.toTerm("String");
-          return function ($83) {
-              return BotScript.Trm.create($82($83));
-          };
-      })())(parseStringLiteral), Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))((function () {
-          var $84 = BotScript.toTerm("Number");
+          var $84 = BotScript.toTerm("String");
           return function ($85) {
               return BotScript.Trm.create($84($85));
           };
-      })())(parseNumber), Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))((function () {
-          var $86 = BotScript.toTerm("Boolean");
+      })())(parseStringLiteral), Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))((function () {
+          var $86 = BotScript.toTerm("Number");
           return function ($87) {
               return BotScript.Trm.create($86($87));
+          };
+      })())(parseNumber), Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))((function () {
+          var $88 = BotScript.toTerm("Boolean");
+          return function ($89) {
+              return BotScript.Trm.create($88($89));
           };
       })())(parseBoolean), Data_Functor.map(Text_Parsing_Parser.functorParserT(Data_Identity.functorIdentity))(BotScript.Var.create)(parseIdentifier), parseArray(exprP) ]);
   };
@@ -23194,15 +23221,15 @@ var PS = {};
       if (maybe instanceof Data_Maybe.Nothing) {
           return parseExpr;
       };
-      throw new Error("Failed pattern match at BotScriptParser (line 463, column 3 - line 465, column 28): " + [ maybe.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptParser (line 468, column 3 - line 470, column 28): " + [ maybe.constructor.name ]);
   });
   var testParseExprs = Control_Alt.alt(Text_Parsing_Parser.altParserT(Data_Identity.monadIdentity))(Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(Data_Array.some(Text_Parsing_Parser.alternativeParserT(Data_Identity.monadIdentity))(Text_Parsing_Parser.lazyParserT)(parseTopExpr))(function (exprs) {
       return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new Data_Tuple.Tuple(true, exprs));
   }))(Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new Data_Tuple.Tuple(false, [  ])));
   var parseScript$prime = Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(testParseStates)(function (v) {
       return Control_Bind.bind(Text_Parsing_Parser.bindParserT(Data_Identity.monadIdentity))(testParseExprs)(function (v1) {
-          var $72 = v.value0 || v1.value0;
-          if ($72) {
+          var $74 = v.value0 || v1.value0;
+          if ($74) {
               return Control_Applicative.pure(Text_Parsing_Parser.applicativeParserT(Data_Identity.monadIdentity))(new Data_Tuple.Tuple(v.value1, v1.value1));
           };
           return Text_Parsing_Parser.fail(Data_Identity.monadIdentity)("Expected State or Expression");
@@ -23236,12 +23263,22 @@ var PS = {};
   
   exports.newObject = () => ({})
 
-  unit = () => false
+  let unit = () => false
   //unit = () => Object()
 
+  function valueOf(v){
+    if(v === undefined
+    || v === null)
+      return false.valueOf();
+    if(v.valueOf)
+      return v.valueOf();
+    else
+      return v;
+  }
+
   exports.evalBin = op => lval => rval => {
-    lval = lval.valueOf();
-    rval = rval.valueOf();
+    lval = valueOf(lval);
+    rval = valueOf(rval);
     if(op == "%")
       return (lval % rval);
     else if(op == "/")
@@ -23277,7 +23314,7 @@ var PS = {};
   }
 
   exports.evalUna = op => val => {
-    val = val.valueOf();
+    val = valueOf(val);
     if(op == "!")
       return (!val);
     else if(op == '-')
@@ -23291,7 +23328,7 @@ var PS = {};
   exports.evalApp = objm => obj => name => args => {
 
     //console.log("call => ", obj, name, args);
-    args = args.map((x)=> x && x.valueOf ? x.valueOf() : x);
+    args = args.map((x)=> x && x.valueOf ? x.valueOf() : (x === undefined || x === null ? false : x));
 
     val = undefined;
     try{
@@ -23372,6 +23409,7 @@ var PS = {};
       array.concat(Array(length - array.length).fill(fill)):
       array;
   }
+
 
   exports.meetEvent = machine => state => types => args => next => () => {
     machine.events[state] = machine.events[state] || [];
@@ -23835,7 +23873,7 @@ var PS = {};
       if (v instanceof Data_Maybe.Nothing) {
           return Undefined["undefined"];
       };
-      throw new Error("Failed pattern match at BotScriptVM (line 99, column 3 - line 101, column 28): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptVM (line 100, column 3 - line 102, column 28): " + [ v.constructor.name ]);
   };
   var getEnv = function (machine) {
       return machine.env;
@@ -23861,8 +23899,8 @@ var PS = {};
   var bind$primeevent$primevars = function (syms) {
       return function (args) {
           return function (enviorn) {
-              return Data_Foldable.foldr(Data_Foldable.foldableArray)(function (v) {
-                  return function (acc) {
+              return Data_Foldable.foldl(Data_Foldable.foldableArray)(function (acc) {
+                  return function (v) {
                       return BotScriptEnv.insert(acc)(v.value0)(BotScript.cast(v.value1));
                   };
               })(enviorn)(Data_Array.zip(syms)(args));
@@ -24028,7 +24066,7 @@ var PS = {};
                   var v3 = BotScriptEnv.save(env)(v1.value0.value0)(none$prime);
                   return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setValExprs(v)(none$prime)(exprs$prime)));
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 310, column 13 - line 315, column 73): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 311, column 13 - line 316, column 73): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Obj) {
               var v2 = Data_Array.unzip(v1.value0.value0);
@@ -24062,7 +24100,7 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 331, column 13 - line 347, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 332, column 13 - line 348, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Visit) {
               var v2 = Data_Foldable.find(Data_Foldable.foldableArray)(function (v3) {
@@ -24077,7 +24115,7 @@ var PS = {};
                       return new Control_Monad_Rec_Class.Done(v);
                   };
               };
-              throw new Error("Failed pattern match at BotScriptVM (line 350, column 13 - line 363, column 38): " + [ v2.constructor.name ]);
+              throw new Error("Failed pattern match at BotScriptVM (line 351, column 13 - line 364, column 38): " + [ v2.constructor.name ]);
           };
           if (v1.value0 instanceof BotScript.Reset) {
               return Control_Applicative.pure(Effect.applicativeEffect)(new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime)));
@@ -24165,7 +24203,7 @@ var PS = {};
               return Control_Monad_Rec_Class.Loop.create(setValExprs(v)($foreign.none(Undefined["undefined"]))(exprs$prime));
           };
       };
-      throw new Error("Failed pattern match at BotScriptVM (line 171, column 1 - line 171, column 63): " + [ v.constructor.name ]);
+      throw new Error("Failed pattern match at BotScriptVM (line 172, column 1 - line 172, column 63): " + [ v.constructor.name ]);
   };
   var make$primeevent$primeaction = function (syms) {
       return function (expr) {
