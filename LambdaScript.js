@@ -1310,7 +1310,6 @@ var PS = {};
   exports["Later"] = Later;
   exports["Going"] = Going;
   exports["Visit"] = Visit;
-  exports["Reset"] = Reset;
   exports["Renew"] = Renew;
   exports["Timer"] = Timer;
   exports["Group"] = Group;
@@ -24107,7 +24106,7 @@ var PS = {};
                   return v3.value0 === v1.value0.value0;
               })(v.states);
               if (v2 instanceof Data_Maybe.Just) {
-                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setExprs(v)(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, new Data_List_Types.Cons(new BotScript.Reset(v.cur), v1.value1.value0)), v1.value1.value1))));
+                  return Control_Applicative.pure(Effect.applicativeEffect)(Control_Monad_Rec_Class.Loop.create(setExprs(v)(new Data_List_Types.Cons(new Data_List_Types.Cons(v2.value0.value1, v1.value1.value0), v1.value1.value1))));
               };
               if (v2 instanceof Data_Maybe.Nothing) {
                   return function __do() {
@@ -24116,9 +24115,6 @@ var PS = {};
                   };
               };
               throw new Error("Failed pattern match at BotScriptVM (line 351, column 13 - line 364, column 38): " + [ v2.constructor.name ]);
-          };
-          if (v1.value0 instanceof BotScript.Reset) {
-              return Control_Applicative.pure(Effect.applicativeEffect)(new Control_Monad_Rec_Class.Loop(setExprs(v)(exprs$prime)));
           };
           if (v1.value0 instanceof BotScript.Group) {
               var new$primeenv = BotScriptEnv.pushEnv(env);
