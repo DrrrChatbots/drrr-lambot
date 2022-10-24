@@ -1,16 +1,26 @@
-const fs = require('fs')
-const repl = require('repl')
-const LS = require('./LambdaScript')
-const {Bot, listen} = require('./bot')
+// const fs = require('fs')
+// const LS = require('./LambdaScript')
+// const {Bot, listen} = require('./bot')
+
+import * as repl from 'repl';
+import * as fs from 'fs';
+import * as https from 'https';
+import * as querystring from 'querystring';
+import * as RL from './run-lambda.mjs'
+import { Bot, listen } from './bot.mjs'
 
 global.Bot = Bot
 global.listen = listen
 global.machines = [];
 global.replmidx = 0;
 
+global.pprint = console.log.bind(console);
+
 function evaluate(cmd, context, filename, callback) {
-  let machine = LS.Main.interact(global.machines[global.replmidx])(cmd)();
-  callback(null, machine.val);
+  let ok, val;
+  [ok, val] = RL.interact(global.machines[global.replmidx], cmd);
+  if(ok) callback(null, val);
+  else process.stdout.write("> ");
 }
 
 let args = process.argv.slice(2);
@@ -77,7 +87,8 @@ while(units.length){
   let [m, code] = [units.shift(), units.shift()];
   try{
     if(m == "ls"){
-      global.machines.push(LS.Main.execute(code)());
+      let [ok, machine] = RL.execute(code);
+      global.machines.push(ok ? machine : new RL.Machine());
     }
     else eval(code);
   }
@@ -85,7 +96,7 @@ while(units.length){
 }
 if(interact){
   if(!global.machines.length)
-    global.machines.push(LS.Main.newMachine());
+    global.machines.push(new RL.Machine());
   //repl.start({ prompt: '> ', eval: evaluate });
   repl.start({ prompt: '> ', eval: evaluate })
   .on('exit', () => {console.log("bye!"), process.exit(0)});

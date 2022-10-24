@@ -1,7 +1,12 @@
-const fs = require('fs');
-const https = require('https');
-const querystring = require('querystring');
-const LS = require('./LambdaScript')
+import * as fs from 'fs';
+import * as https from 'https';
+import * as querystring from 'querystring';
+import * as RL from './run-lambda.mjs'
+
+// const fs = require('fs');
+// const https = require('https');
+// const querystring = require('querystring');
+// const LS = require('./LambdaScript')
 
 https.globalAgent.keepAlive = true;
 
@@ -83,6 +88,13 @@ class Bot {
   listen = null;
   history = null;
   room = {};
+
+  _prev_say_args = [];
+
+  repeat(msg){
+    let [func, args] = this._prev_say_args;
+    if(func) this[func](...args);
+  }
 
   constructor(...args){
 
@@ -251,12 +263,17 @@ class Bot {
         return callback(false)
       }
       this.profile = json.profile;
+      this.user = this.profile;
       this.name = json.profile.name;
       this.avatar = json.profile.icon;
       this.lang = json.profile.lang;
       this.agent = json.profile.device;
       callback && callback(json.profile);
     });
+  }
+
+  log(...args){
+    console.log(...args);
   }
 
   getLoc(callback){
@@ -270,8 +287,10 @@ class Bot {
     if(info){
       this.prevInfo = this.info;
       this.info = info;
-      if(info.prfile)
+      if(info.prfile){
         this.profile = info.profile;
+        this.user = this.profile;
+      }
       if(info.user)
         this.user = info.user;
       if(info.room){
@@ -486,6 +505,7 @@ class Bot {
   }
 
   sendTo(name, msg, url, callback){
+    this._prev_say_args = ['sendTo', arguments];
     let users = this.room.users || []
     let u = users.find(x => x.name === name)
     let cmd = {'message': msg, 'to': u.id };
@@ -579,27 +599,29 @@ function match_user(name, trip, nameTripRegex){
 function script_listen(user, machine){
   function event_action(event, config, req){
 
-    machine = LS.Main.getMain(machine);
+    // machine = LS.Main.getMain(machine);
     let rules = machine.events[""] || []
 
     if(machine.cur.length)
       rules = rules.concat(machine.events[machine.cur] || [])
 
-    rules.map(([type, user_trip_regex, cont_regex, action])=> {
+    rules.map(([type, action])=> {
       if((Array.isArray(type) && type.includes(event)) || type == event){
-        if(match_user(req.user, req.trip, user_trip_regex)){
-          if((req.text === 'unknown' || req.text === undefined)
-            || req.text.match(new RegExp(cont_regex))){
-            action(req.user, req.text, req.url, req.trip, req);
-          }
-        }
+        action(req.user, req.text, req.trip, req.url, req);
       }
     });
+    // rules.map(([type, user_trip_regex, cont_regex, action])=> {
+    //   if((Array.isArray(type) && type.includes(event)) || type == event){
+    //     if(match_user(req.user, req.trip, user_trip_regex)){
+    //       if((req.text === 'unknown' || req.text === undefined)
+    //         || req.text.match(new RegExp(cont_regex))){
+    //         action(req.user, req.text, req.url, req.trip, req);
+    //       }
+    //     }
+    //   }
+    // });
   }
   user.listen = e => event_action(e.type, null, e);
 }
 
-module.exports = {
-  Bot: Bot,
-  listen: script_listen
-};
+export { Bot as Bot, script_listen as listen };
